@@ -1,16 +1,17 @@
+
 "use client";
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -49,6 +50,7 @@ export default function CreateProposalPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
   const disasters = getDisasters();
+  const router = useRouter();
 
   const form = useForm<ProposalFormValues>({
     resolver: zodResolver(proposalSchema),
@@ -123,6 +125,7 @@ export default function CreateProposalPage() {
         title: "Proposal Submitted!",
         description: "Your proposal is now pending community review and voting.",
     });
+    router.push('/dashboard/my-proposals');
   };
   
   const progress = (step / 3) * 100;
@@ -263,3 +266,5 @@ export default function CreateProposalPage() {
     </>
   );
 }
+
+    
