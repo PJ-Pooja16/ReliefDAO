@@ -161,7 +161,7 @@ export default function DisasterDetailPage({ params }: { params: { id: string } 
                                 <Image 
                                     src="https://images.unsplash.com/photo-1599580506456-98a361730453?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxtYXAlMjBkYW5nZXIlMjB6b25lfGVufDB8fHx8MTc2NzUyMjE2MHww&ixlib=rb-4.1.0&q=80&w=1080" 
                                     alt="Affected Area Map"
-                                    layout="fill"
+                                    fill
                                     objectFit="cover"
                                     data-ai-hint="map danger zone"
                                 />
