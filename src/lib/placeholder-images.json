@@ -1,3 +1,28 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "bengaluru-floods",
+      "description": "Flooding in Bengaluru city streets",
+      "imageUrl": "https://images.unsplash.com/photo-1639164631264-e0efc4d35df2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxmbG9vZCUyMGNpdHl8ZW58MHx8fHwxNzY3MzI3MjE5fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "flood city"
+    },
+    {
+      "id": "kerala-landslides",
+      "description": "Landslide in a hilly region of Kerala",
+      "imageUrl": "https://images.unsplash.com/photo-1652092933502-e0122a7085f2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHxsYW5kc2xpZGUlMjBtb3VudGFpbnxlbnwwfHx8fDE3NjczMjcyMjB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "landslide mountain"
+    },
+    {
+      "id": "odisha-cyclone",
+      "description": "Aftermath of a cyclone in Odisha",
+      "imageUrl": "https://images.unsplash.com/photo-1682351889421-546c2b986fba?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxjeWNsb25lJTIwYWZ0ZXJtYXRofGVufDB8fHx8MTc2NzMyNzIyMHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cyclone aftermath"
+    },
+    {
+      "id": "uttarakhand-wildfire",
+      "description": "Forest fire in the mountains of Uttarakhand",
+      "imageUrl": "https://images.unsplash.com/photo-1594984820817-d8317f74930c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxmb3Jlc3QlMjBmaXJlfGVufDB8fHx8MTc2NzMyNzIyMHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "forest fire"
+    }
+  ]
 }
