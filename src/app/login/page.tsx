@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { useRouter } from 'next/navigation';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
@@ -11,38 +12,96 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/logo";
 import Link from 'next/link';
+import { User, Landmark, ShieldCheck, UserCog } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import type { UserRole } from '@/lib/types';
+
+const roles = [
+    {
+        name: 'Donor',
+        description: 'Donate, vote on proposals, and track your impact.',
+        icon: User,
+    },
+    {
+        name: 'Responder',
+        description: 'Submit funding requests and execute relief work.',
+        icon: Landmark,
+    },
+    {
+        name: 'Validator',
+        description: 'Verify proofs, flag issues, and earn rewards.',
+        icon: ShieldCheck,
+    },
+    {
+        name: 'Admin',
+        description: 'Manage the system, handle emergencies, and control the treasury.',
+        icon: UserCog,
+    }
+]
 
 export default function LoginPage() {
   const { connected } = useWallet();
   const router = useRouter();
+  const [selectedRole, setSelectedRole] = useState<UserRole>('Responder');
 
   useEffect(() => {
     if (connected) {
+      localStorage.setItem('userRole', selectedRole);
       router.push('/dashboard');
     }
-  }, [connected, router]);
+  }, [connected, router, selectedRole]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="w-full max-w-md">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
+      <div className="w-full max-w-lg">
         <Card>
           <CardHeader className="text-center space-y-2">
             <div className="mx-auto">
               <Logo />
             </div>
-            <CardTitle className="text-2xl font-headline">Connect Your Wallet</CardTitle>
+            <CardTitle className="text-2xl font-headline">Welcome to ReliefDAO</CardTitle>
             <CardDescription>
-              Connect your Solana wallet to join the DAO and participate.
+              Choose your role to join the decentralized disaster relief effort.
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col items-center justify-center gap-4">
-            <WalletMultiButton />
-            <div className="text-center text-sm text-muted-foreground">
-              By connecting your wallet, you agree to our <br />
-              <Link href="#" className="underline">Terms of Service</Link> and <Link href="#" className="underline">Privacy Policy</Link>.
+          <CardContent className="flex flex-col items-center justify-center gap-6">
+            <RadioGroup 
+                defaultValue={selectedRole}
+                onValueChange={(value: UserRole) => setSelectedRole(value)}
+                className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full"
+            >
+                {roles.map((role) => (
+                    <Label
+                        key={role.name}
+                        htmlFor={role.name}
+                        className={cn(
+                            "flex flex-col items-start p-4 rounded-lg border-2 cursor-pointer transition-all",
+                            selectedRole === role.name ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
+                        )}
+                    >
+                         <RadioGroupItem value={role.name} id={role.name} className="sr-only" />
+                         <div className="flex items-center gap-3 mb-2">
+                            <role.icon className={cn("h-6 w-6", selectedRole === role.name ? "text-primary" : "text-muted-foreground")} />
+                            <span className="font-bold text-lg">{role.name}</span>
+                         </div>
+                         <p className="text-sm text-muted-foreground">{role.description}</p>
+                    </Label>
+                ))}
+            </RadioGroup>
+            
+            <div className="flex flex-col items-center gap-4 w-full pt-4 border-t">
+                <p className="text-sm font-medium">Connect your Solana wallet to proceed as a {selectedRole}.</p>
+                <WalletMultiButton />
+                 <div className="text-center text-sm text-muted-foreground">
+                    By connecting, you agree to our <br />
+                    <Link href="#" className="underline">Terms of Service</Link> and <Link href="#" className="underline">Privacy Policy</Link>.
+                </div>
             </div>
+
           </CardContent>
         </Card>
       </div>
