@@ -1,11 +1,11 @@
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { PageHeader } from "@/components/page-header";
@@ -52,11 +52,13 @@ export default function CreateProposalPage() {
   const { toast } = useToast();
   const disasters = getDisasters();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const disasterId = searchParams.get('disasterId');
 
   const form = useForm<ProposalFormValues>({
     resolver: zodResolver(proposalSchema),
     defaultValues: {
-      disaster: "",
+      disaster: disasterId || "",
       title: "",
       category: "",
       amount: 0,
@@ -67,6 +69,12 @@ export default function CreateProposalPage() {
       verification: [],
     },
   });
+
+  useEffect(() => {
+    if (disasterId) {
+      form.setValue('disaster', disasterId);
+    }
+  }, [disasterId, form]);
 
   const handleGenerate = async () => {
     const { disaster: disasterId, title } = form.getValues();
@@ -178,7 +186,7 @@ export default function CreateProposalPage() {
                         <FormField control={form.control} name="disaster" render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Disaster</FormLabel>
-                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                <Select onValueChange={field.onChange} value={field.value}>
                                     <FormControl><SelectTrigger><SelectValue placeholder="Select a disaster" /></SelectTrigger></FormControl>
                                     <SelectContent>
                                         {disasters.map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
@@ -295,3 +303,5 @@ export default function CreateProposalPage() {
     </>
   );
 }
+
+    

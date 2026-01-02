@@ -148,7 +148,7 @@ export default function DisasterDetailPage({ params }: { params: { id: string } 
                             </Card>
                              <div className="space-y-2">
                                 <Button asChild size="lg" className="w-full">
-                                    <Link href="/proposals/create">Submit Proposal</Link>
+                                    <Link href={`/proposals/create?disasterId=${disaster.id}`}>Submit Proposal</Link>
                                 </Button>
                                 <Button asChild size="lg" variant="secondary" className="w-full">
                                     <Link href="/donate">Donate</Link>
@@ -227,3 +227,5 @@ export default function DisasterDetailPage({ params }: { params: { id: string } 
     </>
   );
 }
+
+    
