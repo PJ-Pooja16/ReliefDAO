@@ -5,6 +5,7 @@ import {
   CheckCircle,
   Vote,
   HelpingHand,
+  Siren,
 } from "lucide-react";
 
 import { SiteHeader } from "@/components/site-header";
@@ -25,7 +26,7 @@ export default function Home() {
   const disasters = getDisasters();
   const howItWorksSteps = [
     {
-      icon: <SirenIcon className="h-10 w-10 text-primary" />,
+      icon: <Siren className="h-10 w-10 text-primary" />,
       title: "Disaster Detected",
       description: "Real-time alerts from global feeds and community reports trigger an emergency response protocol.",
     },
@@ -57,10 +58,10 @@ export default function Home() {
             data-ai-hint="disaster relief"
           />
           <div className="container mx-auto px-4 md:px-6 text-center relative z-10 text-white">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-headline tracking-tight text-shadow-lg">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-headline tracking-tight text-shadow-lg text-primary-foreground">
               Rapid. Transparent. Decentralized.
             </h1>
-            <p className="mt-4 max-w-2xl mx-auto text-lg md:text-xl text-shadow">
+            <p className="mt-4 max-w-2xl mx-auto text-lg md:text-xl text-shadow text-background/90">
               A new paradigm for disaster relief, powered by community and technology.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
@@ -141,29 +142,4 @@ export default function Home() {
       <SiteFooter />
     </>
   );
-}
-
-
-function SirenIcon(props: React.SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M7 12a5 5 0 0 1 5-5v0a5 5 0 0 1 5 5v6H7v-6Z" />
-      <path d="M5 20a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v2H5v-2Z" />
-      <path d="M12 7V2l-2 3" />
-      <path d="M12 7V2l2 3" />
-      <path d="M9 12H2" />
-      <path d="M15 12h7" />
-    </svg>
-  )
 }
