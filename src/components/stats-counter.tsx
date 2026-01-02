@@ -58,7 +58,7 @@ export default function StatsCounter() {
                         <Counter target={stat.value} unit={stat.unit} suffix={stat.suffix} />
                     ) : (
                         <span className="font-bold font-code text-4xl md:text-5xl text-primary">
-                            {unit === 'M' && '$'}0{stat.unit}{stat.suffix}
+                            {stat.unit === 'M' && '$'}0{stat.unit}{stat.suffix}
                         </span>
                     )}
                 </div>
