@@ -1,5 +1,8 @@
 "use client";
 
+import { useEffect } from 'react';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { useRouter } from 'next/navigation';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import {
   Card,
@@ -12,6 +15,15 @@ import { Logo } from "@/components/logo";
 import Link from 'next/link';
 
 export default function LoginPage() {
+  const { connected } = useWallet();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (connected) {
+      router.push('/dashboard');
+    }
+  }, [connected, router]);
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="w-full max-w-md">
@@ -37,5 +49,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
-    

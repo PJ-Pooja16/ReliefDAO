@@ -22,7 +22,9 @@ export function SiteHeader() {
   const router = useRouter();
 
   useEffect(() => {
-    if (connected) {
+    // This effect is now in login/page.tsx for the initial redirect.
+    // This can be used for other global connected-user logic if needed.
+    if (connected && window.location.pathname === '/login') {
       router.push('/dashboard');
     }
   }, [connected, router]);
@@ -81,5 +83,3 @@ export function SiteHeader() {
     </header>
   );
 }
-
-    
