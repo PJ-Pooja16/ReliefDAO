@@ -28,6 +28,8 @@ import {
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 
 export default function DashboardLayout({
   children,
@@ -35,6 +37,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const { connected, disconnect } = useWallet();
 
   const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -88,13 +91,11 @@ export default function DashboardLayout({
               </SidebarMenuItem>
              <SidebarMenuItem>
                 <SidebarMenuButton
-                  asChild
+                  onClick={disconnect}
                   tooltip={{ children: 'Logout', className: 'w-max' }}
                 >
-                  <Link href="/">
                     <LogOut />
                     <span>Logout</span>
-                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
           </SidebarMenu>
@@ -110,10 +111,7 @@ export default function DashboardLayout({
                 <Button variant="ghost" size="icon">
                     <Bell className="h-5 w-5"/>
                 </Button>
-                <Avatar className="h-9 w-9">
-                    <AvatarImage src="https://github.com/shadcn.png" alt="@shadcn" />
-                    <AvatarFallback>CN</AvatarFallback>
-                </Avatar>
+                {connected && <WalletMultiButton />}
             </div>
         </header>
         <main className="flex-1 overflow-auto">
@@ -123,3 +121,5 @@ export default function DashboardLayout({
     </SidebarProvider>
   );
 }
+
+    

@@ -1,8 +1,15 @@
+
+"use client";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import { Logo } from "./logo";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export function SiteHeader() {
   const navLinks = [
@@ -10,6 +17,15 @@ export function SiteHeader() {
     { href: "/dashboard/active-disasters", label: "Disasters" },
     { href: "/donate", label: "Donate" },
   ];
+
+  const { connected } = useWallet();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (connected) {
+      router.push('/dashboard');
+    }
+  }, [connected, router]);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -58,12 +74,12 @@ export function SiteHeader() {
             ))}
           </nav>
           <div className="flex items-center gap-4">
-            <Button asChild>
-                <Link href="/login">Login</Link>
-            </Button>
+            {connected ? <WalletMultiButton /> : <Button asChild><Link href="/login">Login</Link></Button>}
           </div>
         </div>
       </div>
     </header>
   );
 }
+
+    
