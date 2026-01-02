@@ -1,3 +1,7 @@
+
+"use client";
+
+import { useEffect, useState } from "react";
 import { getDisasterById, getProposalsByDisasterId } from "@/lib/data";
 import { notFound } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
@@ -11,6 +15,7 @@ import { ProposalCard } from "@/components/proposal-card";
 import { Progress } from "@/components/ui/progress";
 import Link from 'next/link';
 import Image from 'next/image';
+import type { Proposal } from "@/lib/types";
 import {
   FilePlus2,
   HandHeart,
@@ -27,13 +32,37 @@ import {
 } from "lucide-react";
 
 export default function DisasterDetailPage({ params }: { params: { id: string } }) {
+  const [proposals, setProposals] = useState<Proposal[]>([]);
   const disaster = getDisasterById(params.id);
   
+  useEffect(() => {
+    if (disaster) {
+      const initialProposals = getProposalsByDisasterId(disaster.id);
+      try {
+        const storedProposals: Proposal[] = JSON.parse(localStorage.getItem('proposals') || '[]');
+        const newProposalsForThisDisaster = storedProposals.filter(p => p.disasterId === disaster.id);
+        
+        // Combine initial and new proposals, avoiding duplicates
+        const allProposals = [...initialProposals];
+        newProposalsForThisDisaster.forEach(newProp => {
+          if (!allProposals.some(p => p.id === newProp.id)) {
+            allProposals.push(newProp);
+          }
+        });
+        
+        setProposals(allProposals);
+
+      } catch (error) {
+        console.error("Failed to parse proposals from localStorage", error);
+        setProposals(initialProposals);
+      }
+    }
+  }, [disaster]);
+
   if (!disaster) {
     notFound();
   }
 
-  const proposals = getProposalsByDisasterId(disaster.id);
   const fundingPercentage = (disaster.fundsRaised / disaster.fundsNeeded) * 100;
   const approvedProposals = proposals.filter(p => p.status === 'Approved' || p.status === 'Completed').length;
   const pendingProposals = proposals.filter(p => p.status === 'Pending').length;
