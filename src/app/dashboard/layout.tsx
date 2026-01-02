@@ -1,3 +1,4 @@
+
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -25,8 +26,9 @@ import {
   Settings,
   LogOut,
   Bell,
+  ShieldCheck,
+  UserCog,
 } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
@@ -46,6 +48,7 @@ export default function DashboardLayout({
     { href: '/dashboard/treasury', label: 'Treasury', icon: Landmark, amount: '$4.2M' },
     { href: '/dashboard/my-impact', label: 'My Impact', icon: User },
     { href: '/dashboard/my-proposals', label: 'My Proposals', icon: FileText },
+    { href: '/dashboard/validator', label: 'Validator Panel', icon: ShieldCheck },
   ];
 
   return (
@@ -73,6 +76,20 @@ export default function DashboardLayout({
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
+          </SidebarMenu>
+          <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={pathname === '/admin'}
+                  tooltip={{ children: "Admin", className: 'w-max' }}
+                >
+                  <Link href="/admin">
+                    <UserCog />
+                    <span>Admin</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter>
