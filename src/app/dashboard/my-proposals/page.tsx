@@ -6,12 +6,22 @@ import { PageHeader } from "@/components/page-header";
 import { ProposalCard } from "@/components/proposal-card";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import type { Proposal } from "@/lib/types";
+import type { Proposal, User } from "@/lib/types";
 import Link from "next/link";
-import { getUserById } from "@/lib/data";
+import { getUserById as originalGetUserById } from "@/lib/data";
 
 // A mock current user. In a real app, this would come from an auth context.
 const MOCK_USER_ID = "u-current";
+const mockUser: User = { id: MOCK_USER_ID, name: "Me", role: "Responder" as const, reputation: 85 };
+
+// Wrapper function to handle mock user
+const getUserById = (id: string): User | undefined => {
+  if (id === MOCK_USER_ID) {
+    return mockUser;
+  }
+  return originalGetUserById(id);
+};
+
 
 export default function MyProposalsPage() {
   const [myProposals, setMyProposals] = useState<Proposal[]>([]);
@@ -29,15 +39,6 @@ export default function MyProposalsPage() {
     }
   }, []);
 
-  // Add a mock user for the proposals created client-side
-  const mockUser = { id: MOCK_USER_ID, name: "Me", role: "Responder" as const, reputation: 85 };
-  const originalGetUserById = getUserById;
-  (getUserById as any) = (id: string) => {
-    if (id === MOCK_USER_ID) return mockUser;
-    return originalGetUserById(id);
-  }
-
-
   return (
     <>
       <PageHeader
@@ -48,7 +49,7 @@ export default function MyProposalsPage() {
         {myProposals.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {myProposals.map((proposal) => (
-              <ProposalCard key={proposal.id} proposal={proposal} />
+              <ProposalCard key={proposal.id} proposal={proposal} getUserById={getUserById} />
             ))}
           </div>
         ) : (

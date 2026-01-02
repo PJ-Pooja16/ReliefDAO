@@ -10,15 +10,16 @@ import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/status-badge";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import type { Proposal } from "@/lib/types";
-import { getUserById } from "@/lib/data";
+import type { Proposal, User } from "@/lib/types";
+import { getUserById as defaultGetUserById } from "@/lib/data";
 import { Clock, Users, DollarSign } from "lucide-react";
 
 interface ProposalCardProps {
   proposal: Proposal;
+  getUserById?: (id: string) => User | undefined;
 }
 
-export function ProposalCard({ proposal }: ProposalCardProps) {
+export function ProposalCard({ proposal, getUserById = defaultGetUserById }: ProposalCardProps) {
   const user = getUserById(proposal.createdBy);
   const votePercentage = (proposal.votesYes / (proposal.votesYes + proposal.votesNo)) * 100;
 
