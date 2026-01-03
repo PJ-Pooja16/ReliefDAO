@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getDisasterById } from "@/lib/data";
+import { getDisasterById, getDisasterUpdates } from "@/lib/data";
 import { notFound } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
@@ -29,12 +29,16 @@ import {
   MapPin,
   FileText,
   Vote,
+  Newspaper
 } from "lucide-react";
 import { useCollection, useFirebase, useMemoFirebase } from "@/firebase";
 import { collection, query, where } from "firebase/firestore";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 
 export default function DisasterDetailPage({ params }: { params: { id: string } }) {
   const disaster = getDisasterById(params.id);
+  const updates = getDisasterUpdates();
   const { firestore } = useFirebase();
 
   const proposalsCollectionRef = useMemoFirebase(() => firestore ? collection(firestore, 'proposals') : null, [firestore]);
@@ -172,11 +176,11 @@ export default function DisasterDetailPage({ params }: { params: { id: string } 
                         <CardContent>
                             <div className="relative aspect-video w-full rounded-lg overflow-hidden border">
                                 <Image 
-                                    src="https://images.unsplash.com/photo-1614730321244-85f67a24558d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxoZWF0bWFwJTIwZGlzYXN0ZXJ8ZW58MHx8fHwxNzY3NTIyMTYwfDA&ixlib=rb-4.1.0&q=80&w=1080" 
+                                    src="https://images.unsplash.com/photo-1588805126745-d4b68a356247?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxtYXAlMjBoZWF0bWFwfGVufDB8fHx8MTc2NzUyMjE2MHww&ixlib=rb-4.1.0&q=80&w=1080" 
                                     alt="Disaster Prone Area Heatmap"
                                     fill
                                     objectFit="cover"
-                                    data-ai-hint="heatmap disaster"
+                                    data-ai-hint="map heatmap"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                             </div>
@@ -198,10 +202,55 @@ export default function DisasterDetailPage({ params }: { params: { id: string } 
                     </Card>
                 </TabsContent>
                 <TabsContent value="updates">
-                    <Card><CardContent className="p-6 text-center text-muted-foreground">Live updates coming soon.</CardContent></Card>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Live Updates</CardTitle>
+                            <CardDescription>A timeline of events and actions taken for this disaster response.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="relative pl-6">
+                                <div className="absolute left-0 top-0 h-full w-px bg-border translate-x-[11px]"></div>
+                                {updates.map((update, index) => (
+                                    <div key={update.id} className="relative pl-8 py-4">
+                                        <div className="absolute left-0 top-[22px] h-3 w-3 rounded-full bg-primary ring-4 ring-background"></div>
+                                        <p className="text-sm text-muted-foreground">{new Date(update.date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                                        <h4 className="font-semibold mt-1">{update.title}</h4>
+                                        <p className="text-muted-foreground mt-1">{update.description}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </CardContent>
+                    </Card>
                 </TabsContent>
                 <TabsContent value="transparency">
-                     <Card><CardContent className="p-6 text-center text-muted-foreground">Transparency dashboard coming soon.</CardContent></Card>
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Transparency & Fund Allocation</CardTitle>
+                            <CardDescription>On-chain data providing a transparent view of how funds are being used.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                           <Table>
+                               <TableHeader>
+                                   <TableRow>
+                                       <TableHead>Proposal ID</TableHead>
+                                       <TableHead>Category</TableHead>
+                                       <TableHead>Status</TableHead>
+                                       <TableHead className="text-right">Amount (USD)</TableHead>
+                                   </TableRow>
+                               </TableHeader>
+                               <TableBody>
+                                   {proposals?.filter(p => p.status === 'Approved' || p.status === 'Completed').map(p => (
+                                    <TableRow key={p.id}>
+                                        <TableCell className="font-mono text-xs">{p.id}</TableCell>
+                                        <TableCell><Badge variant="outline">{p.category}</Badge></TableCell>
+                                        <TableCell><StatusBadge status={p.status}/></TableCell>
+                                        <TableCell className="text-right font-code">${p.amountRequested.toLocaleString()}</TableCell>
+                                    </TableRow>
+                                   ))}
+                               </TableBody>
+                           </Table>
+                        </CardContent>
+                    </Card>
                 </TabsContent>
 
             </Tabs>

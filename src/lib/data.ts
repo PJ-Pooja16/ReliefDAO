@@ -1,5 +1,5 @@
 
-import type { Disaster, Proposal, User } from './types';
+import type { Disaster, Proposal, User, TreasuryTransaction, DisasterUpdate } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 
 const users: User[] = [
@@ -232,6 +232,22 @@ const disasters: Disaster[] = [
   },
 ];
 
+const transactions: TreasuryTransaction[] = [
+    { id: 't1', type: 'Inbound', description: 'Donation from 0x...a4f2', amount: 50, date: '2026-01-12T10:00:00Z', txHash: '0xabc...123' },
+    { id: 't2', type: 'Outbound', description: 'Fund Proposal P-002: Medical Supplies', amount: 8000, date: '2026-01-11T14:30:00Z', txHash: '0xdef...456' },
+    { id: 't3', type: 'Inbound', description: 'Donation from 0x...b3c1', amount: 10, date: '2026-01-11T09:00:00Z', txHash: '0xghi...789' },
+    { id: 't4', type: 'Outbound', description: 'Fund Proposal P-005: Evacuation Transport', amount: 45000, date: '2026-01-10T18:00:00Z', txHash: '0xjkl...012' },
+    { id: 't5', type: 'Inbound', description: 'Donation from 0x...d9e3', amount: 100, date: '2026-01-10T11:00:00Z', txHash: '0xmno...345' },
+    { id: 't6', type: 'Inbound', description: 'Donation from 0x...f8a7', amount: 25, date: '2026-01-09T16:00:00Z', txHash: '0xpqr...678' },
+];
+
+const updates: DisasterUpdate[] = [
+    { id: 'up1', date: '2026-01-12', title: 'Response Scaling Up', description: 'Additional volunteer teams have been deployed to the northern regions of Bengaluru as flood waters recede.' },
+    { id: 'up2', date: '2026-01-10', title: 'Medical Aid Delivered', description: 'Proposal P-002 for medical supplies has been successfully executed. Over 500 individuals received primary care.' },
+    { id: 'up3', date: '2026-01-08', title: 'Food Distribution Started', description: 'The first batch of emergency food kits under proposal P-001 has been distributed in Koramangala.' },
+    { id: 'up4', date: '2026-01-05', title: 'Water Purification Units Online', description: 'All three water purification units are now operational, providing clean water to an estimated 10,000 people.' },
+];
+
 export function getDisasters(): Disaster[] {
   return disasters;
 }
@@ -252,10 +268,17 @@ export function getUserById(id: string): User | undefined {
   return users.find(u => u.id === id);
 }
 
+export function getTreasuryTransactions(): TreasuryTransaction[] {
+    return transactions;
+}
+
+export function getDisasterUpdates(): DisasterUpdate[] {
+    return updates;
+}
+
+
 export const landingPageStats = [
     { name: 'Funds Deployed', value: 2.1, unit: 'M', suffix: '+' },
     { name: 'Disasters Responded', value: 45, unit: '', suffix: '' },
     { name: 'Lives Impacted', value: 12500, unit: '', suffix: '+' },
 ];
-
-    

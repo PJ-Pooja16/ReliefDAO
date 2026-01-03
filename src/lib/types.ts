@@ -61,3 +61,19 @@ export type Donation = {
   timestamp: string;
   donationType: string;
 };
+
+export type TreasuryTransaction = {
+  id: string;
+  type: 'Inbound' | 'Outbound';
+  description: string;
+  amount: number;
+  date: string;
+  txHash: string;
+};
+
+export type DisasterUpdate = {
+  id: string;
+  date: string;
+  title: string;
+  description: string;
+};
