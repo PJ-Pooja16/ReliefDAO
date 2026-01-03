@@ -15,19 +15,53 @@ import {
   Loader2,
 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { getWeatherAlerts, GetWeatherAlertsOutput } from '@/ai/flows/get-weather-alerts';
 
-type Alert = GetWeatherAlertsOutput & {
+type Alert = {
+    id: string;
+    type: string;
+    severity: string;
+    location: string;
+    details: string;
+    time: string;
     icon: LucideIcon;
     color: string;
 };
 
-const initialLocations = [
-  'Bay of Bengal, approaching Odisha coast',
-  'Uttarakhand, India',
-  'Indian Ocean, near Andaman Islands',
-  'Western Ghats, Kerala',
+const staticAlerts: Omit<Alert, 'icon' | 'color'>[] = [
+    {
+        id: 'bay-of-bengal-approaching-odisha-coast',
+        type: 'Cyclone',
+        severity: 'Severe',
+        location: 'Bay of Bengal, approaching Odisha coast',
+        details: 'Tropical Cyclone "Amphan" expected to make landfall in 12 hours. Evacuations in progress.',
+        time: 'Just now',
+    },
+    {
+        id: 'uttarakhand-india',
+        type: 'Flash Flood Watch',
+        severity: 'High',
+        location: 'Uttarakhand, India',
+        details: 'Heavy thunderstorms in the region may lead to flash floods and landslides. High-risk areas are being monitored.',
+        time: '15 minutes ago',
+    },
+    {
+        id: 'indian-ocean-near-andaman-islands',
+        type: 'Tsunami Watch',
+        severity: 'Moderate',
+        location: 'Indian Ocean, near Andaman Islands',
+        details: 'A 7.1 magnitude undersea earthquake has been detected. A tsunami watch is in effect for coastal areas.',
+        time: '32 minutes ago',
+    },
+    {
+        id: 'western-ghats-kerala',
+        type: 'Landslide Alert',
+        severity: 'Moderate',
+        location: 'Western Ghats, Kerala',
+        details: 'Continuous heavy rainfall has saturated soil, increasing the risk of landslides in mountainous terrain.',
+        time: '1 hour ago',
+    },
 ];
+
 
 const getAlertConfig = (type: string, severity: string) => {
     let icon: LucideIcon = AlertTriangle;
@@ -45,8 +79,6 @@ const getAlertConfig = (type: string, severity: string) => {
     return { icon, color };
 };
 
-const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
-
 
 export default function EmergencyFeedPage() {
     const [alerts, setAlerts] = useState<Alert[]>([]);
@@ -54,30 +86,17 @@ export default function EmergencyFeedPage() {
 
 
   useEffect(() => {
-    const fetchAlerts = async () => {
+    const loadAlerts = () => {
       setIsLoading(true);
-      const fetchedAlerts: Alert[] = [];
-      try {
-        for (const location of initialLocations) {
-            const alertData = await getWeatherAlerts({ location });
-            const formattedAlert: Alert = {
-              ...alertData,
-              ...getAlertConfig(alertData.type, alertData.severity),
-            };
-            fetchedAlerts.push(formattedAlert);
-            setAlerts([...fetchedAlerts]); // Update state incrementally
-            await delay(1000); // Add a 1-second delay between requests
-        }
-      } catch (error) {
-        console.error("Failed to fetch weather alerts:", error);
-        // Optionally, set an error state to show in the UI
-      } finally {
-        setIsLoading(false);
-      }
+      const formattedAlerts = staticAlerts.map(alert => ({
+          ...alert,
+          ...getAlertConfig(alert.type, alert.severity)
+      }));
+      setAlerts(formattedAlerts);
+      setIsLoading(false);
     };
 
-    fetchAlerts();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    loadAlerts();
   }, []);
 
   return (
@@ -107,10 +126,10 @@ export default function EmergencyFeedPage() {
               <CardTitle>Live Alerts</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {(isLoading && alerts.length === 0) ? (
+              {isLoading ? (
                  <div className="flex items-center justify-center p-10">
                     <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-                    <span className="ml-4 text-muted-foreground">Fetching live alerts...</span>
+                    <span className="ml-4 text-muted-foreground">Loading alerts...</span>
                 </div>
               ) : alerts.length > 0 ? (
                 alerts.map((alert, index) => (
@@ -139,7 +158,6 @@ export default function EmergencyFeedPage() {
                     No active alerts at this time.
                 </div>
               )}
-               {isLoading && alerts.length > 0 && <div className="flex items-center justify-center pt-4"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /><span className="ml-2 text-muted-foreground text-sm">Fetching more alerts...</span></div>}
             </CardContent>
           </Card>
         </div>
