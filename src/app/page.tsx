@@ -58,10 +58,10 @@ export default function Home() {
             data-ai-hint="disaster relief"
           />
           <div className="container mx-auto px-4 md:px-6 text-center relative z-10">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-headline tracking-tight text-shadow-lg text-blue-900">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-headline tracking-tight text-white text-shadow-lg">
               Rapid. Transparent. Decentralized.
             </h1>
-            <p className="mt-4 max-w-2xl mx-auto text-lg md:text-xl text-shadow text-blue-900/90">
+            <p className="mt-4 max-w-2xl mx-auto text-lg md:text-xl text-shadow text-white/90">
               A new paradigm for disaster relief, powered by community and technology.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
