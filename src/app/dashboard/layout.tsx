@@ -30,9 +30,11 @@ import {
   UserCog,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { useAuth, useUser } from '@/firebase';
+import { useAuth, useDoc, useFirebase, useMemoFirebase, useUser } from '@/firebase';
 import { signOut } from 'firebase/auth';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
+import type { User as AppUser } from '@/lib/types';
+import { doc } from 'firebase/firestore';
 
 export default function DashboardLayout({
   children,
@@ -42,7 +44,11 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
+  const { firestore } = useFirebase();
   const router = useRouter();
+
+  const userDocRef = useMemoFirebase(() => user ? doc(firestore, "users", user.uid) : null, [firestore, user]);
+  const { data: currentUser, isLoading: isCurrentUserLoading } = useDoc<AppUser>(userDocRef);
 
   useEffect(() => {
     if (!isUserLoading && !user) {
@@ -51,21 +57,28 @@ export default function DashboardLayout({
   }, [user, isUserLoading, router]);
 
   const handleLogout = async () => {
-    await signOut(auth);
+    if (auth) {
+        await signOut(auth);
+    }
     router.push('/login');
   };
 
-  const navItems = [
-    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { href: '/dashboard/emergency-feed', label: 'Emergency Feed', icon: Siren },
-    { href: '/dashboard/active-disasters', label: 'Active Disasters', icon: Globe },
-    { href: '/dashboard/treasury', label: 'Treasury', icon: Landmark, amount: '$4.2M' },
-    { href: '/dashboard/my-impact', label: 'My Impact', icon: User },
-    { href: '/dashboard/my-proposals', label: 'My Proposals', icon: FileText },
-    { href: '/dashboard/validator', label: 'Validator Panel', icon: ShieldCheck },
-  ];
+  const navItems = useMemo(() => {
+    const allItems = [
+      { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['Admin', 'Donor', 'Responder', 'Validator'] },
+      { href: '/dashboard/emergency-feed', label: 'Emergency Feed', icon: Siren, roles: ['Admin', 'Donor', 'Responder', 'Validator'] },
+      { href: '/dashboard/active-disasters', label: 'Active Disasters', icon: Globe, roles: ['Admin', 'Donor', 'Responder', 'Validator'] },
+      { href: '/dashboard/treasury', label: 'Treasury', icon: Landmark, amount: '$4.2M', roles: ['Admin', 'Donor'] },
+      { href: '/dashboard/my-impact', label: 'My Impact', icon: User, roles: ['Donor'] },
+      { href: '/dashboard/my-proposals', label: 'My Proposals', icon: FileText, roles: ['Responder'] },
+      { href: '/dashboard/validator', label: 'Validator Panel', icon: ShieldCheck, roles: ['Validator'] },
+      { href: '/admin', label: 'Admin', icon: UserCog, roles: ['Admin'] },
+    ];
+    if (!currentUser) return [];
+    return allItems.filter(item => item.roles.includes(currentUser.role));
+  }, [currentUser]);
 
-  if (isUserLoading || !user) {
+  if (isUserLoading || isCurrentUserLoading || !user || !currentUser) {
     return <div className="flex-1 flex items-center justify-center">Loading...</div>;
   }
 
@@ -94,20 +107,6 @@ export default function DashboardLayout({
                 </SidebarMenuButton>
               </SidebarMenuItem>
             ))}
-          </SidebarMenu>
-          <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  isActive={pathname === '/admin'}
-                  tooltip={{ children: "Admin", className: 'w-max' }}
-                >
-                  <Link href="/admin">
-                    <UserCog />
-                    <span>Admin</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
           </SidebarMenu>
         </SidebarContent>
         <SidebarFooter>
