@@ -226,8 +226,8 @@ const disasters: Disaster[] = [
     verifiedDeliveries: 25,
     image: {
       id: 'chennai-drought',
-      url: "https://picsum.photos/seed/chennai-drought/600/400",
-      hint: 'drought city',
+      url: PlaceHolderImages.find(img => img.id === 'chennai-drought')?.imageUrl || '',
+      hint: PlaceHolderImages.find(img => img.id === 'chennai-drought')?.imageHint || '',
     },
   },
 ];
