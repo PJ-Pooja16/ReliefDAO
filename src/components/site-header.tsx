@@ -9,6 +9,7 @@ import { Logo } from "./logo";
 import { useUser, useAuth } from "@/firebase";
 import { useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
+import { ThemeToggle } from "./theme-toggle";
 
 export function SiteHeader() {
   const navLinks = [
@@ -72,7 +73,8 @@ export function SiteHeader() {
               </Link>
             ))}
           </nav>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
             {isUserLoading ? (
               <Button disabled>Loading...</Button>
             ) : user ? (

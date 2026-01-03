@@ -35,6 +35,7 @@ import { signOut } from 'firebase/auth';
 import { useEffect, useMemo } from 'react';
 import type { User as AppUser } from '@/lib/types';
 import { doc } from 'firebase/firestore';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 export default function DashboardLayout({
   children,
@@ -142,6 +143,7 @@ export default function DashboardLayout({
                 <div className="flex-1">
                     {/* Optional: Add search bar here */}
                 </div>
+                <ThemeToggle />
                 <Button variant="ghost" size="icon">
                     <Bell className="h-5 w-5"/>
                 </Button>
