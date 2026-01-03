@@ -45,6 +45,8 @@ const getAlertConfig = (type: string, severity: string) => {
     return { icon, color };
 };
 
+const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
+
 
 export default function EmergencyFeedPage() {
     const [alerts, setAlerts] = useState<Alert[]>([]);
@@ -64,6 +66,7 @@ export default function EmergencyFeedPage() {
             };
             fetchedAlerts.push(formattedAlert);
             setAlerts([...fetchedAlerts]); // Update state incrementally
+            await delay(1000); // Add a 1-second delay between requests
         }
       } catch (error) {
         console.error("Failed to fetch weather alerts:", error);
@@ -74,6 +77,7 @@ export default function EmergencyFeedPage() {
     };
 
     fetchAlerts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
