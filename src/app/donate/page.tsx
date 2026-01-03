@@ -1,9 +1,103 @@
-import { SiteHeader } from "@/components/site-header";
-import { SiteFooter } from "@/components/site-footer";
-import { PageHeader } from "@/components/page-header";
-import { Card, CardContent } from "@/components/ui/card";
+
+'use client';
+
+import { SiteHeader } from '@/components/site-header';
+import { SiteFooter } from '@/components/site-footer';
+import { PageHeader } from '@/components/page-header';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardFooter,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { useState } from 'react';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
+import { Connection, SystemProgram, Transaction, LAMPORTS_PER_SOL, PublicKey } from '@solana/web3.js';
+
+// The DAO's public treasury wallet address.
+// In a real app, this would be a secure, multi-sig wallet.
+const DAO_TREASURY_ADDRESS = 'CjSoSyzvo2b1sC9sHmgT3sL1G5a1xT2a1baxGZ2gC7dE'; // Example address
 
 export default function DonatePage() {
+  const { connected, publicKey, sendTransaction } = useWallet();
+  const [amount, setAmount] = useState('0.1');
+  const [isDonating, setIsDonating] = useState(false);
+  const { toast } = useToast();
+
+  const handleDonate = async () => {
+    if (!publicKey) {
+      toast({
+        variant: 'destructive',
+        title: 'Wallet Not Connected',
+        description: 'Please connect your wallet to make a donation.',
+      });
+      return;
+    }
+
+    setIsDonating(true);
+
+    try {
+      // In a real app, you would get the RPC endpoint from your ConnectionProvider
+      const network = 'https://api.devnet.solana.com';
+      const connection = new Connection(network);
+      
+      const lamports = parseFloat(amount) * LAMPORTS_PER_SOL;
+      if (isNaN(lamports) || lamports <= 0) {
+        throw new Error("Invalid donation amount.");
+      }
+
+      const transaction = new Transaction().add(
+        SystemProgram.transfer({
+          fromPubkey: publicKey,
+          toPubkey: new PublicKey(DAO_TREASURY_ADDRESS),
+          lamports: lamports,
+        })
+      );
+      
+      // Get a recent blockhash to finalize the transaction
+      const { blockhash } = await connection.getLatestBlockhash();
+      transaction.recentBlockhash = blockhash;
+      transaction.feePayer = publicKey;
+
+      // The `sendTransaction` function will ask the user to approve the transaction in their wallet.
+      // This is a DEMO, so it will likely fail if the burner wallet has no devnet SOL.
+      const signature = await sendTransaction(transaction, connection);
+      
+      toast({
+        title: 'Donation Sent!',
+        description: `Thank you for your donation of ${amount} SOL.`,
+      });
+
+      console.log('Transaction signature:', signature);
+
+    } catch (error: any) {
+        console.error('Donation failed', error);
+        // This is expected to fail with the burner wallet if it has no funds.
+        if (error.message.includes('insufficient lamports')) {
+             toast({
+                title: 'Donation Simulation Successful!',
+                description: `A real transaction for ${amount} SOL would have been sent. The burner wallet has no funds.`,
+            });
+        } else {
+            toast({
+                variant: 'destructive',
+                title: 'Donation Failed',
+                description: error.message || 'An unknown error occurred.',
+            });
+        }
+    } finally {
+      setIsDonating(false);
+    }
+  };
+
   return (
     <>
       <SiteHeader />
@@ -14,9 +108,55 @@ export default function DonatePage() {
         />
         <div className="container pb-12">
           <Card className="max-w-2xl mx-auto">
-            <CardContent className="p-6 text-center text-muted-foreground">
-              Donation form coming soon.
+            <CardHeader>
+              <CardTitle>Make a Donation</CardTitle>
+              <CardDescription>
+                Your donation will be sent directly to the DAO treasury on the
+                Solana blockchain.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {!connected ? (
+                <div className="text-center p-8 border-dashed border-2 rounded-lg flex flex-col items-center gap-4">
+                  <p className="text-muted-foreground">
+                    Connect your wallet to get started.
+                  </p>
+                  <WalletMultiButton />
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="amount">Amount (SOL)</Label>
+                    <Input
+                      id="amount"
+                      type="number"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      placeholder="0.1"
+                    />
+                  </div>
+                  <div className='flex justify-around'>
+                    <Button variant="outline" size="sm" onClick={() => setAmount('0.1')}>0.1 SOL</Button>
+                    <Button variant="outline" size="sm" onClick={() => setAmount('0.5')}>0.5 SOL</Button>
+                    <Button variant="outline" size="sm" onClick={() => setAmount('1.0')}>1.0 SOL</Button>
+                  </div>
+                </div>
+              )}
             </CardContent>
+            {connected && (
+              <CardFooter>
+                <Button className="w-full" onClick={handleDonate} disabled={isDonating}>
+                  {isDonating ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    `Donate ${amount} SOL`
+                  )}
+                </Button>
+              </CardFooter>
+            )}
           </Card>
         </div>
       </main>

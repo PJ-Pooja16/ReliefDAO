@@ -53,4 +53,11 @@ export type User = {
   activity: string;
 };
 
-    
+export type Donation = {
+  id: string;
+  disasterId: string;
+  donorId: string; // User ID
+  amount: number;
+  timestamp: string;
+  donationType: string;
+};

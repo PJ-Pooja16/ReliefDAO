@@ -2,6 +2,7 @@ import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { FirebaseClientProvider } from '@/firebase/client-provider';
+import { WalletProvider } from '@/components/wallet-provider';
 
 export const metadata: Metadata = {
   title: 'ReliefDAO',
@@ -22,10 +23,12 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased">
         <FirebaseClientProvider>
-          <div className="relative flex min-h-screen flex-col">
-            {children}
-          </div>
-          <Toaster />
+          <WalletProvider>
+            <div className="relative flex min-h-screen flex-col">
+              {children}
+            </div>
+            <Toaster />
+          </WalletProvider>
         </FirebaseClientProvider>
       </body>
     </html>
