@@ -66,6 +66,13 @@ service cloud.firestore {
     function isExistingCreator(doc) {
       return isExistingDoc() && isOwner(doc.data.creatorId);
     }
+    
+    /**
+     * Checks if a user is the owner of a new document via the 'createdBy' field.
+     */
+    function isNewCreator() {
+      return request.resource.data.createdBy == request.auth.uid;
+    }
 
     /**
      * Checks if a user is the owner of an existing document via the 'donorId' field.
@@ -237,19 +244,25 @@ service cloud.firestore {
       allow update: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
       allow delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
     }
+    
+    match /proposals/{proposalId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn() && isNewCreator();
+      allow update, delete: if isExistingCreator(resource) || isAdmin();
 
-    /**
-     * @description Votes are public, can be created by any signed-in user, but are immutable once cast.
-     * @path /proposals/{proposalId}/votes/{voteId}
-     * @allow (create) An authenticated user casting a vote with their own 'voterId'.
-     * @deny (update) Any user trying to change their vote after it has been cast.
-     * @principle Enforces immutability for critical, single-action records like votes to ensure data integrity.
-     */
-    match /proposals/{proposalId}/votes/{voteId} {
-      allow get, list: if true;
-      allow create: if isSignedIn() && hasValidVoteData(proposalId);
-      allow update: if false;
-      allow delete: if false;
+      /**
+       * @description Votes are public, can be created by any signed-in user, but are immutable once cast.
+       * @path /proposals/{proposalId}/votes/{voteId}
+       * @allow (create) An authenticated user casting a vote with their own 'voterId'.
+       * @deny (update) Any user trying to change their vote after it has been cast.
+       * @principle Enforces immutability for critical, single-action records like votes to ensure data integrity.
+       */
+      match /votes/{voteId} {
+        allow get, list: if true;
+        allow create: if isSignedIn() && hasValidVoteData(proposalId);
+        allow update: if false;
+        allow delete: if false;
+      }
     }
     
     /**
