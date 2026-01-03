@@ -7,6 +7,7 @@ import {
 } from '@solana/wallet-adapter-react';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
+import { PhantomWalletAdapter } from '@solana/wallet-adapter-phantom';
 import { UnsafeBurnerWalletAdapter } from '@solana/wallet-adapter-unsafe-burner';
 
 // Default styles that can be overridden by your app
@@ -21,7 +22,8 @@ export const WalletProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
   const wallets = useMemo(
     () => [
-      // Manually add any wallet adapters you want to support.
+      // Add the Phantom wallet adapter.
+      new PhantomWalletAdapter(),
       // The UnsafeBurnerWalletAdapter is a simple wallet for testing that doesn't require a browser extension.
       new UnsafeBurnerWalletAdapter(),
     ],
