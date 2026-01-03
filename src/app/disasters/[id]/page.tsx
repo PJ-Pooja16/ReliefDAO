@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getDisasterById, getProposalsByDisasterId } from "@/lib/data";
+import { getDisasterById } from "@/lib/data";
 import { notFound } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
@@ -30,42 +30,25 @@ import {
   FileText,
   Vote,
 } from "lucide-react";
+import { useCollection, useFirebase, useMemoFirebase } from "@/firebase";
+import { collection, query, where } from "firebase/firestore";
 
 export default function DisasterDetailPage({ params }: { params: { id: string } }) {
-  const [proposals, setProposals] = useState<Proposal[]>([]);
   const disaster = getDisasterById(params.id);
-  
-  useEffect(() => {
-    if (disaster) {
-      const initialProposals = getProposalsByDisasterId(disaster.id);
-      try {
-        const storedProposals: Proposal[] = JSON.parse(localStorage.getItem('proposals') || '[]');
-        const newProposalsForThisDisaster = storedProposals.filter(p => p.disasterId === disaster.id);
-        
-        // Combine initial and new proposals, avoiding duplicates
-        const allProposals = [...initialProposals];
-        newProposalsForThisDisaster.forEach(newProp => {
-          if (!allProposals.some(p => p.id === newProp.id)) {
-            allProposals.push(newProp);
-          }
-        });
-        
-        setProposals(allProposals);
+  const { firestore } = useFirebase();
 
-      } catch (error) {
-        console.error("Failed to parse proposals from localStorage", error);
-        setProposals(initialProposals);
-      }
-    }
-  }, [disaster]);
+  const proposalsCollectionRef = useMemoFirebase(() => firestore ? collection(firestore, 'proposals') : null, [firestore]);
+  const disasterProposalsQuery = useMemoFirebase(() => (proposalsCollectionRef && disaster) ? query(proposalsCollectionRef, where("disasterId", "==", disaster.id)) : null, [proposalsCollectionRef, disaster]);
+  const { data: proposals, isLoading: areProposalsLoading } = useCollection<Proposal>(disasterProposalsQuery);
+
 
   if (!disaster) {
     notFound();
   }
 
   const fundingPercentage = (disaster.fundsRaised / disaster.fundsNeeded) * 100;
-  const approvedProposals = proposals.filter(p => p.status === 'Approved' || p.status === 'Completed').length;
-  const pendingProposals = proposals.filter(p => p.status === 'Pending').length;
+  const approvedProposals = proposals ? proposals.filter(p => p.status === 'Approved' || p.status === 'Completed').length : 0;
+  const pendingProposals = proposals ? proposals.filter(p => p.status === 'Pending').length : 0;
 
   const stats = [
     { label: "Funds Raised", value: `$${(disaster.fundsRaised / 1000).toFixed(0)}k`, icon: DollarSign },
@@ -162,12 +145,13 @@ export default function DisasterDetailPage({ params }: { params: { id: string } 
                 </TabsContent>
 
                 <TabsContent value="proposals">
+                    {areProposalsLoading && <p>Loading proposals...</p>}
                     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                        {proposals.map(proposal => (
+                        {proposals && proposals.map(proposal => (
                             <ProposalCard key={proposal.id} proposal={proposal} />
                         ))}
                     </div>
-                     {proposals.length === 0 && (
+                     {proposals && proposals.length === 0 && (
                         <Card>
                             <CardContent className="p-10 text-center text-muted-foreground">
                                 <p>No proposals have been submitted for this disaster yet.</p>
@@ -227,5 +211,3 @@ export default function DisasterDetailPage({ params }: { params: { id: string } 
     </>
   );
 }
-
-    

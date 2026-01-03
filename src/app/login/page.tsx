@@ -2,9 +2,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useWallet } from '@solana/wallet-adapter-react';
 import { useRouter } from 'next/navigation';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import {
   Card,
   CardContent,
@@ -19,6 +17,11 @@ import Link from 'next/link';
 import { User, Landmark, ShieldCheck, UserCog } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { UserRole } from '@/lib/types';
+import { Button } from '@/components/ui/button';
+import { useAuth, useFirebase, useUser } from '@/firebase';
+import { signInAnonymously } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
+import { setDocumentNonBlocking } from '@/firebase';
 
 const roles = [
     {
@@ -44,16 +47,58 @@ const roles = [
 ]
 
 export default function LoginPage() {
-  const { connected } = useWallet();
   const router = useRouter();
   const [selectedRole, setSelectedRole] = useState<UserRole>('Responder');
+  const { user, isUserLoading } = useUser();
+  const { auth, firestore } = useFirebase();
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
   useEffect(() => {
-    if (connected) {
-      localStorage.setItem('userRole', selectedRole);
+    if (!isUserLoading && user) {
       router.push('/dashboard');
     }
-  }, [connected, router, selectedRole]);
+  }, [user, isUserLoading, router]);
+
+  const handleLogin = async () => {
+    setIsLoggingIn(true);
+    try {
+      const userCredential = await signInAnonymously(auth);
+      const user = userCredential.user;
+
+      const userDocRef = doc(firestore, "users", user.uid);
+      
+      const names: Record<UserRole, string> = {
+        'Donor': 'Sarah',
+        'Responder': 'Rajesh',
+        'Validator': 'Dr. Mehta',
+        'Admin': 'Vijay'
+      }
+
+      const newUser = {
+        id: user.uid,
+        name: names[selectedRole],
+        role: selectedRole,
+        reputation: 85, // starting reputation
+        email: user.email || '',
+        activity: "Joined the DAO",
+      };
+
+      setDocumentNonBlocking(userDocRef, newUser, { merge: true });
+
+    } catch (error) {
+      console.error("Anonymous sign-in failed", error);
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
+  if (isUserLoading || user) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
@@ -94,8 +139,10 @@ export default function LoginPage() {
             </RadioGroup>
             
             <div className="flex flex-col items-center gap-4 w-full pt-4 border-t">
-                <p className="text-sm font-medium">Connect your Solana wallet to proceed as a {selectedRole}.</p>
-                <WalletMultiButton />
+                <p className="text-sm font-medium">Connect anonymously to proceed as a {selectedRole}.</p>
+                <Button onClick={handleLogin} disabled={isLoggingIn}>
+                  {isLoggingIn ? "Logging in..." : "Enter as " + selectedRole}
+                </Button>
                  <div className="text-center text-sm text-muted-foreground">
                     By connecting, you agree to our <br />
                     <Link href="#" className="underline">Terms of Service</Link> and <Link href="#" className="underline">Privacy Policy</Link>.

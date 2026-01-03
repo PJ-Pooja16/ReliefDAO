@@ -22,6 +22,8 @@ import { Wand2, Loader2, ArrowLeft, ArrowRight } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Progress } from "@/components/ui/progress";
 import type { Proposal } from "@/lib/types";
+import { addDocumentNonBlocking, useFirebase, useUser } from "@/firebase";
+import { collection, serverTimestamp } from "firebase/firestore";
 
 const proposalSchema = z.object({
   disaster: z.string().min(1, "Please select a disaster."),
@@ -54,6 +56,9 @@ export default function CreateProposalPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const disasterId = searchParams.get('disasterId');
+  const { firestore } = useFirebase();
+  const { user } = useUser();
+
 
   const form = useForm<ProposalFormValues>({
     resolver: zodResolver(proposalSchema),
@@ -129,40 +134,41 @@ export default function CreateProposalPage() {
   const prevStep = () => setStep((s) => s - 1);
 
   const onSubmit = (data: ProposalFormValues) => {
-    const newProposal: Proposal = {
-      id: `prop-${Date.now()}`,
+    if (!user) {
+        toast({
+            variant: "destructive",
+            title: "Not authenticated",
+            description: "You must be logged in to create a proposal.",
+        });
+        return;
+    }
+
+    const proposalsColRef = collection(firestore, 'proposals');
+
+    const newProposal = {
       disasterId: data.disaster,
       title: data.title,
       category: data.category as Proposal['category'],
       amountRequested: data.amount,
-      status: 'Pending',
+      status: 'Pending' as const,
       timeline: data.timeline,
       votesYes: 0,
       votesNo: 0,
-      createdBy: 'u-current', // Placeholder for current user
+      createdBy: user.uid,
       description: data.description,
       beneficiaries: data.beneficiaries,
       location: data.location,
       verificationPlan: data.verification,
+      createdAt: serverTimestamp(),
     };
-
-    try {
-      const existingProposals: Proposal[] = JSON.parse(localStorage.getItem('proposals') || '[]');
-      localStorage.setItem('proposals', JSON.stringify([...existingProposals, newProposal]));
+    
+    addDocumentNonBlocking(proposalsColRef, newProposal);
       
-      toast({
-          title: "Proposal Submitted!",
-          description: "Your proposal is now pending community review and voting.",
-      });
-      router.push('/dashboard/my-proposals');
-
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Failed to save proposal",
-        description: "Could not save the proposal to your browser's storage.",
-      });
-    }
+    toast({
+        title: "Proposal Submitted!",
+        description: "Your proposal is now pending community review and voting.",
+    });
+    router.push('/dashboard/my-proposals');
   };
   
   const progress = (step / 3) * 100;
@@ -303,5 +309,3 @@ export default function CreateProposalPage() {
     </>
   );
 }
-
-    

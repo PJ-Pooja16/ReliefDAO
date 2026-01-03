@@ -4,12 +4,11 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu } from "lucide-react";
+import { Menu, LogOut } from "lucide-react";
 import { Logo } from "./logo";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { useUser, useAuth } from "@/firebase";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { signOut } from "firebase/auth";
 
 export function SiteHeader() {
   const navLinks = [
@@ -18,16 +17,14 @@ export function SiteHeader() {
     { href: "/donate", label: "Donate" },
   ];
 
-  const { connected } = useWallet();
+  const { user, isUserLoading } = useUser();
+  const auth = useAuth();
   const router = useRouter();
 
-  useEffect(() => {
-    // This effect is now in login/page.tsx for the initial redirect.
-    // This can be used for other global connected-user logic if needed.
-    if (connected && window.location.pathname === '/login') {
-      router.push('/dashboard');
-    }
-  }, [connected, router]);
+  const handleLogout = async () => {
+    await signOut(auth);
+    router.push('/login');
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -76,7 +73,16 @@ export function SiteHeader() {
             ))}
           </nav>
           <div className="flex items-center gap-4">
-            {connected ? <WalletMultiButton /> : <Button asChild><Link href="/login">Login</Link></Button>}
+            {isUserLoading ? (
+              <Button disabled>Loading...</Button>
+            ) : user ? (
+              <>
+                <Button asChild variant="ghost"><Link href="/dashboard">Dashboard</Link></Button>
+                <Button variant="outline" onClick={handleLogout}><LogOut className="mr-2 h-4 w-4"/> Logout</Button>
+              </>
+            ) : (
+              <Button asChild><Link href="/login">Login</Link></Button>
+            )}
           </div>
         </div>
       </div>

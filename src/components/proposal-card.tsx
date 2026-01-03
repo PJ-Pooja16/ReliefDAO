@@ -11,16 +11,19 @@ import { StatusBadge } from "@/components/status-badge";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { Proposal, User } from "@/lib/types";
-import { getUserById as defaultGetUserById } from "@/lib/data";
 import { Clock, Users, DollarSign } from "lucide-react";
+import { useDoc, useMemoFirebase } from "@/firebase";
+import { doc, getFirestore } from "firebase/firestore";
 
 interface ProposalCardProps {
   proposal: Proposal;
-  getUserById?: (id: string) => User | undefined;
 }
 
-export function ProposalCard({ proposal, getUserById = defaultGetUserById }: ProposalCardProps) {
-  const user = getUserById(proposal.createdBy);
+export function ProposalCard({ proposal }: ProposalCardProps) {
+  const firestore = getFirestore();
+  const userDocRef = useMemoFirebase(() => proposal.createdBy ? doc(firestore, "users", proposal.createdBy) : null, [firestore, proposal.createdBy]);
+  const { data: user } = useDoc<User>(userDocRef);
+
   const votePercentage = (proposal.votesYes / (proposal.votesYes + proposal.votesNo)) * 100;
 
   const getAvatarFallback = (name: string) => {
@@ -42,7 +45,6 @@ export function ProposalCard({ proposal, getUserById = defaultGetUserById }: Pro
         </div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground pt-2">
           <Avatar className="h-6 w-6">
-            {/* Placeholder for user avatar */}
             <AvatarFallback>{user ? getAvatarFallback(user.name) : "UN"}</AvatarFallback>
           </Avatar>
           <span>By {user?.name || 'Unknown'}</span>

@@ -1,7 +1,7 @@
 
 'use client';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   SidebarProvider,
   Sidebar,
@@ -30,8 +30,9 @@ import {
   UserCog,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { useWallet } from '@solana/wallet-adapter-react';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { useAuth, useUser } from '@/firebase';
+import { signOut } from 'firebase/auth';
+import { useEffect } from 'react';
 
 export default function DashboardLayout({
   children,
@@ -39,7 +40,20 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const { connected, disconnect } = useWallet();
+  const { user, isUserLoading } = useUser();
+  const auth = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, isUserLoading, router]);
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    router.push('/login');
+  };
 
   const navItems = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -50,6 +64,10 @@ export default function DashboardLayout({
     { href: '/dashboard/my-proposals', label: 'My Proposals', icon: FileText },
     { href: '/dashboard/validator', label: 'Validator Panel', icon: ShieldCheck },
   ];
+
+  if (isUserLoading || !user) {
+    return <div className="flex-1 flex items-center justify-center">Loading...</div>;
+  }
 
   return (
     <SidebarProvider>
@@ -108,7 +126,7 @@ export default function DashboardLayout({
               </SidebarMenuItem>
              <SidebarMenuItem>
                 <SidebarMenuButton
-                  onClick={disconnect}
+                  onClick={handleLogout}
                   tooltip={{ children: 'Logout', className: 'w-max' }}
                 >
                     <LogOut />
@@ -128,7 +146,6 @@ export default function DashboardLayout({
                 <Button variant="ghost" size="icon">
                     <Bell className="h-5 w-5"/>
                 </Button>
-                {connected && <WalletMultiButton />}
             </div>
         </header>
         <main className="flex-1 overflow-auto">
@@ -138,5 +155,3 @@ export default function DashboardLayout({
     </SidebarProvider>
   );
 }
-
-    

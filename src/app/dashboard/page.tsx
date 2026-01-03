@@ -10,49 +10,24 @@ import { ProposalCard } from "@/components/proposal-card";
 import { getDisasters, getUserById as originalGetUserById } from "@/lib/data";
 import { FilePlus2, Camera, Siren, BarChart, History, Award, ShieldCheck, UserCog } from "lucide-react";
 import type { Proposal, User, UserRole } from "@/lib/types";
-
-// Mock user data based on role
-const MOCK_USERS: Record<UserRole, User> = {
-  Responder: { id: "u-responder", name: "Rajesh", role: "Responder", reputation: 92 },
-  Donor: { id: "u-donor", name: "Sarah", role: "Donor", reputation: 85 },
-  Validator: { id: "u-validator", name: "Dr. Mehta", role: "Validator", reputation: 98 },
-  Admin: { id: "u-admin", name: "Vijay", role: "Admin", reputation: 100 },
-};
-
-const MOCK_USER_ID = "u-current";
+import { useCollection, useDoc, useFirebase, useMemoFirebase, useUser } from "@/firebase";
+import { collection, doc, query, where } from "firebase/firestore";
 
 export default function DashboardPage() {
-    const [currentUser, setCurrentUser] = useState<User | null>(null);
+    const { user, isUserLoading } = useUser();
+    const { firestore } = useFirebase();
 
-    useEffect(() => {
-        const storedRole = localStorage.getItem('userRole') as UserRole | null;
-        const role = storedRole && MOCK_USERS[storedRole] ? storedRole : 'Responder';
-        setCurrentUser({ ...MOCK_USERS[role], id: MOCK_USER_ID });
-    }, []);
+    const userDocRef = useMemoFirebase(() => user ? doc(firestore, "users", user.uid) : null, [firestore, user]);
+    const { data: currentUser, isLoading: isCurrentUserLoading } = useDoc<User>(userDocRef);
 
-    // Wrapper function to handle mock user
-    const getUserById = (id: string): User | undefined => {
-        if (id === MOCK_USER_ID && currentUser) {
-            return currentUser;
-        }
-        return originalGetUserById(id);
-    };
+    const proposalsCollectionRef = useMemoFirebase(() => firestore ? collection(firestore, 'proposals') : null, [firestore]);
+    const myProposalsQuery = useMemoFirebase(() => (proposalsCollectionRef && currentUser) ? query(proposalsCollectionRef, where("createdBy", "==", currentUser.id)) : null, [proposalsCollectionRef, currentUser]);
+    const { data: myProposals, isLoading: areMyProposalsLoading } = useCollection<Proposal>(myProposalsQuery);
+
 
     const ResponderDashboard = ({ user }: { user: User }) => {
         const disasters = getDisasters();
         const activeDisaster = disasters.find(d => d.id === 'd1'); // Mock active disaster in user's area
-        const [myProposals, setMyProposals] = useState<Proposal[]>([]);
-
-        useEffect(() => {
-            try {
-            const storedProposals: Proposal[] = JSON.parse(localStorage.getItem('proposals') || '[]');
-            const filteredProposals = storedProposals.filter(p => p.createdBy === MOCK_USER_ID);
-            setMyProposals(filteredProposals);
-            } catch (error) {
-            console.error("Failed to parse proposals from localStorage", error);
-            setMyProposals([]);
-            }
-        }, []);
 
         return (
             <>
@@ -118,10 +93,11 @@ export default function DashboardPage() {
                     {/* My Active Proposals */}
                     <section className="mb-8">
                         <h2 className="text-2xl font-bold font-headline mb-4">My Active Proposals</h2>
-                        {myProposals.length > 0 ? (
+                        {areMyProposalsLoading && <p>Loading proposals...</p>}
+                        {myProposals && myProposals.length > 0 ? (
                             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                                 {myProposals.map((proposal) => (
-                                <ProposalCard key={proposal.id} proposal={proposal} getUserById={getUserById} />
+                                    <ProposalCard key={proposal.id} proposal={proposal} />
                                 ))}
                             </div>
                         ) : (
@@ -222,9 +198,12 @@ export default function DashboardPage() {
         </>
     )
 
-    if (!currentUser) {
-        // You can render a loading state here
+    if (isUserLoading || isCurrentUserLoading) {
         return <div className="flex-1 flex items-center justify-center">Loading...</div>;
+    }
+
+    if (!currentUser) {
+        return <div className="flex-1 flex items-center justify-center">User not found.</div>;
     }
 
     if (currentUser.role === 'Admin') {
