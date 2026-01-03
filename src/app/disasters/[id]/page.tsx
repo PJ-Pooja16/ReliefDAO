@@ -166,17 +166,17 @@ export default function DisasterDetailPage({ params }: { params: { id: string } 
                 <TabsContent value="map">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Affected Area Map</CardTitle>
+                            <CardTitle>Disaster Prone Area Heatmap</CardTitle>
                             <CardDescription>Live map showing the disaster area and operational zones.</CardDescription>
                         </CardHeader>
                         <CardContent>
                             <div className="relative aspect-video w-full rounded-lg overflow-hidden border">
                                 <Image 
-                                    src="https://images.unsplash.com/photo-1599580506456-98a361730453?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxtYXAlMjBkYW5nZXIlMjB6b25lfGVufDB8fHx8MTc2NzUyMjE2MHww&ixlib=rb-4.1.0&q=80&w=1080" 
-                                    alt="Affected Area Map"
+                                    src="https://images.unsplash.com/photo-1614730321244-85f67a24558d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxoZWF0bWFwJTIwZGlzYXN0ZXJ8ZW58MHx8fHwxNzY3NTIyMTYwfDA&ixlib=rb-4.1.0&q=80&w=1080" 
+                                    alt="Disaster Prone Area Heatmap"
                                     fill
                                     objectFit="cover"
-                                    data-ai-hint="map danger zone"
+                                    data-ai-hint="heatmap disaster"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                             </div>
