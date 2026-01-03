@@ -1,0 +1,270 @@
+/**
+ * Core Philosophy:
+ * This ruleset secures a disaster relief platform (ReliefDAO). It is designed to
+ * protect user privacy while enabling public transparency for disaster events,
+ * proposals, and donations. The model uses a combination of user-ownership for
+ * private data, creator-ownership for public contributions, and a global admin
+ * role for managing core data like disaster events.
+ *
+ * Data Structure:
+ * - /users/{userId}: Private user profiles and a subcollection for their personal donation history.
+ * - /disasters/{disasterId}: Publicly readable disaster information, managed by admins. This collection contains subcollections for proposals and donations.
+ * - /proposals/{proposalId}: A top-level collection containing a subcollection for votes, allowing for separation of concerns.
+ * - /roles_admin/{uid}: An access control list where the existence of a document grants a user administrative privileges.
+ *
+ * Key Security Decisions:
+ * - Admin Role: A user is considered an admin if a document with their UID exists in the /roles_admin collection. Admins have privileged access to create disasters and moderate content.
+ * - User Privacy: User profiles in /users/{userId} are strictly private and can only be accessed by the owner. User enumeration via list operations is disabled.
+ * - Public Transparency: Core operational data like disasters, proposals, donations, and votes are publicly readable to ensure transparency, but write operations are strictly controlled.
+ * - Ownership-Based Writes: Any user-generated content (proposals, donations, votes) has a denormalized ownership field (e.g., 'creatorId' on proposals, 'donorId' on donations) to perform fast and secure authorization checks. This avoids costly and complex `get()` calls to other documents, resulting in a more performant and secure system. For example, a rule on `/proposals/{proposalId}` can instantly check `resource.data.creatorId` without needing to look up a parent document.
+ *
+ * Structural Segregation:
+ * User data is segregated into the private `/users` collection, while public operational data resides in `/disasters` and `/proposals`. This clear separation simplifies rules and makes public list operations safe and efficient. A user's personal view of their donations is duplicated in `/users/{userId}/donations` to provide a secure, user-scoped list without exposing other users' data.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --------------------------------------------------------------------
+    // Helper Functions
+    // --------------------------------------------------------------------
+
+    /**
+     * Checks if the user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * Checks if the currently authenticated user is the owner of the resource
+     * identified by the given userId.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * Checks if the authenticated user has an admin role.
+     * Admin status is granted by the existence of a document in the /roles_admin collection.
+     */
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+    }
+
+    /**
+     * Checks if the document being accessed already exists in Firestore.
+     * Used to protect against updates or deletes on non-existent documents.
+     */
+    function isExistingDoc() {
+      return resource != null;
+    }
+
+    /**
+     * Checks if a user is the owner of an existing document via the 'creatorId' field.
+     */
+    function isExistingCreator(doc) {
+      return isExistingDoc() && isOwner(doc.data.creatorId);
+    }
+
+    /**
+     * Checks if a user is the owner of an existing document via the 'donorId' field.
+     */
+    function isExistingDonor(doc) {
+      return isExistingDoc() && isOwner(doc.data.donorId);
+    }
+    
+    // /**
+    //  * Checks if a user is the owner of an existing document via the 'voterId' field.
+    //  */
+    // function isExistingVoter(doc) {
+    //   return isExistingDoc() && isOwner(doc.data.voterId);
+    // }
+
+    /**
+     * Validates that the user profile being created has an 'id' field that
+     * matches the authenticated user's UID.
+     */
+    function hasValidUserProfileData(userId) {
+      return request.resource.data.id == userId;
+    }
+
+    /**
+     * Enforces immutability of the user's ID within their profile document on update.
+     */
+    function isUserProfileImmutable() {
+      return request.resource.data.id == resource.data.id;
+    }
+
+    /**
+     * Validates that a new proposal has a 'creatorId' matching the user and a 'disasterId'
+     * matching the path.
+     */
+    function hasValidProposalData(disasterId) {
+      return request.resource.data.creatorId == request.auth.uid && request.resource.data.disasterId == disasterId;
+    }
+
+    /**
+     * Enforces immutability of a proposal's core relational fields on update.
+     */
+    function isProposalImmutable() {
+      return request.resource.data.creatorId == resource.data.creatorId && request.resource.data.disasterId == resource.data.disasterId;
+    }
+
+    /**
+     * Validates that a new donation has a 'donorId' matching the user and a 'disasterId'
+     * matching the path.
+     */
+    function hasValidDonationData(disasterId) {
+      return request.resource.data.donorId == request.auth.uid && request.resource.data.disasterId == disasterId;
+    }
+
+    /**
+     * Enforces immutability of a donation's core relational fields on update.
+     */
+    function isDonationImmutable() {
+      return request.resource.data.donorId == resource.data.donorId && request.resource.data.disasterId == resource.data.disasterId;
+    }
+
+    /**
+     * Validates that a new vote has a 'voterId' matching the user and a 'proposalId'
+     * matching the path.
+     */
+    function hasValidVoteData(proposalId) {
+      return request.resource.data.voterId == request.auth.uid && request.resource.data.proposalId == proposalId;
+    }
+
+    /**
+     * Validates that a user's private donation record correctly links to their own ID.
+     */
+    function hasValidUserDonationData(userId) {
+      return request.resource.data.donorId == userId;
+    }
+
+    /**
+     * Enforces immutability of the donorId on a user's private donation record.
+     */
+    function isUserDonationImmutable() {
+      return request.resource.data.donorId == resource.data.donorId;
+    }
+
+    // --------------------------------------------------------------------
+    // Collection Rules
+    // --------------------------------------------------------------------
+
+    /**
+     * @description Users can create and manage their own profile. Profiles are private.
+     * @path /users/{userId}
+     * @allow (create) An authenticated user creating their own profile document, e.g., POST /users/abc with auth.uid = 'abc'.
+     * @deny (get) A user trying to read another user's profile, e.g., GET /users/xyz with auth.uid = 'abc'.
+     * @principle Restricts access to a user's own data tree, preventing data leaks and user enumeration.
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isOwner(userId) && hasValidUserProfileData(userId);
+      allow update: if isOwner(userId) && isExistingDoc() && isUserProfileImmutable();
+      allow delete: if isOwner(userId) && isExistingDoc();
+    }
+
+    /**
+     * @description A user's private collection of their donations. Only they can access it.
+     * @path /users/{userId}/donations/{donationId}
+     * @allow (list) An authenticated user listing their own donations, e.g., GET /users/abc/donations with auth.uid = 'abc'.
+     * @deny (get) A user trying to read a specific donation from another user's private list.
+     * @principle Enforces strict data ownership within a user's private subcollection.
+     */
+    match /users/{userId}/donations/{donationId} {
+      allow get, list: if isOwner(userId);
+      allow create: if isOwner(userId) && hasValidUserDonationData(userId);
+      allow update: if isOwner(userId) && isExistingDoc() && isUserDonationImmutable();
+      allow delete: if isOwner(userId) && isExistingDoc();
+    }
+
+    /**
+     * @description Disaster events are public to all users, but only admins can create or modify them.
+     * @path /disasters/{disasterId}
+     * @allow (get) Any user, authenticated or not, reading a disaster document.
+     * @deny (create) A non-admin user trying to create a new disaster event.
+     * @principle Segregates public data from privileged administrative actions.
+     */
+    match /disasters/{disasterId} {
+      allow get, list: if true;
+      allow create: if isAdmin();
+      allow update: if isAdmin() && isExistingDoc();
+      allow delete: if isAdmin() && isExistingDoc();
+    }
+
+    /**
+     * @description Proposals are public, but can only be created by signed-in users and modified by their creator or an admin.
+     * @path /disasters/{disasterId}/proposals/{proposalId}
+     * @allow (create) An authenticated user creating a proposal with their own 'creatorId'.
+     * @deny (update) A user trying to update a proposal created by someone else.
+     * @principle Enforces document ownership for writes on publicly readable data.
+     */
+    match /disasters/{disasterId}/proposals/{proposalId} {
+      allow get, list: if true;
+      allow create: if isSignedIn() && hasValidProposalData(disasterId);
+      allow update: if (isExistingCreator(resource) || isAdmin()) && isProposalImmutable();
+      allow delete: if isExistingCreator(resource) || isAdmin();
+    }
+
+    /**
+     * @description Donations are public for transparency, but only the donor or an admin can manage them.
+     * @path /disasters/{disasterId}/donations/{donationId}
+     * @allow (create) An authenticated user creating a donation with their own 'donorId'.
+     * @deny (delete) A user trying to delete a donation made by someone else.
+     * @principle Enforces document ownership for writes on publicly readable data.
+     */
+    match /disasters/{disasterId}/donations/{donationId} {
+      allow get, list: if true;
+      allow create: if isSignedIn() && hasValidDonationData(disasterId);
+      allow update: if (isExistingDonor(resource) || isAdmin()) && isDonationImmutable();
+      allow delete: if isExistingDonor(resource) || isAdmin();
+    }
+
+    /**
+     * @description Verification records are public, but writes are restricted.
+     * @path /disasters/{disasterId}/proposals/{proposalId}/verifications/{verificationId}
+     * @allow (get) Any user reading a verification record for a proposal.
+     * @deny (create) Any user trying to create a verification, as the required ownership field is missing.
+     * @principle Demonstrates a secure default. Writes are disabled because the data model is missing a field required for authorization.
+     */
+    match /disasters/{disasterId}/proposals/{proposalId}/verifications/{verificationId} {
+      allow get, list: if true;
+      // CRITICAL: Cannot implement owner-only writes. The 'Verification' entity is missing a 'creatorId' field.
+      allow create: if false; // TODO: Add owner validation once the schema is updated with an ownership field (e.g., creatorId).
+      allow update: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
+      allow delete: if false; // TODO: Add owner validation once the schema is updated with an ownership field.
+    }
+
+    /**
+     * @description Votes are public, can be created by any signed-in user, but are immutable once cast.
+     * @path /proposals/{proposalId}/votes/{voteId}
+     * @allow (create) An authenticated user casting a vote with their own 'voterId'.
+     * @deny (update) Any user trying to change their vote after it has been cast.
+     * @principle Enforces immutability for critical, single-action records like votes to ensure data integrity.
+     */
+    match /proposals/{proposalId}/votes/{voteId} {
+      allow get, list: if true;
+      allow create: if isSignedIn() && hasValidVoteData(proposalId);
+      allow update: if false;
+      allow delete: if false;
+    }
+    
+    /**
+     * @description The admin role collection. Only other admins can view or manage roles.
+     * @path /roles_admin/{uid}
+     * @allow (get) An admin checking if another user has an admin role.
+     * @deny (list) Any user trying to list all admins.
+     * @principle Secures the access control system itself. Prevents privilege escalation and enumeration of administrators.
+     */
+    match /roles_admin/{uid} {
+      allow get: if isAdmin();
+      allow list: if false;
+      allow create: if isAdmin();
+      allow update: if isAdmin() && isExistingDoc();
+      allow delete: if isAdmin() && isExistingDoc();
+    }
+  }
+}

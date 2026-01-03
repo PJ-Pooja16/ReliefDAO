@@ -1,0 +1,434 @@
+{
+  "entities": {
+    "Disaster": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Disaster",
+      "type": "object",
+      "description": "Represents a disaster event.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the disaster event."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the disaster event (e.g., Bengaluru Floods)."
+        },
+        "location": {
+          "type": "string",
+          "description": "Geographical location of the disaster."
+        },
+        "status": {
+          "type": "string",
+          "description": "Current status of the disaster (e.g., Active, Completed)."
+        },
+        "fundsNeeded": {
+          "type": "number",
+          "description": "Total amount of funds needed for the disaster relief."
+        },
+        "impact": {
+          "type": "string",
+          "description": "Description of the disaster's impact."
+        },
+        "alertLevel": {
+          "type": "number",
+          "description": "Alert level of the disaster (e.g., 1-5)."
+        },
+        "dateStarted": {
+          "type": "string",
+          "description": "The date the disaster started.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "location",
+        "status",
+        "fundsNeeded",
+        "impact"
+      ]
+    },
+    "Proposal": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Proposal",
+      "type": "object",
+      "description": "Represents a proposal for disaster relief.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the proposal."
+        },
+        "disasterId": {
+          "type": "string",
+          "description": "Reference to Disaster. (Relationship: Disaster 1:N Proposal)"
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the proposal."
+        },
+        "amount": {
+          "type": "number",
+          "description": "Amount of funds requested in the proposal."
+        },
+        "status": {
+          "type": "string",
+          "description": "Current status of the proposal (e.g., Pending, Approved, Completed)."
+        },
+        "creatorId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Proposal) The user who created the proposal."
+        },
+        "category": {
+          "type": "string",
+          "description": "Category of the proposal (e.g., Food, Medical, Shelter)."
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed description of the proposal."
+        },
+        "beneficiaries": {
+          "type": "number",
+          "description": "Number of beneficiaries that the proposal aims to help."
+        },
+        "verificationPlan": {
+          "type": "string",
+          "description": "Plan for verifying the delivery and impact of the proposal."
+        }
+      },
+      "required": [
+        "id",
+        "disasterId",
+        "title",
+        "amount",
+        "status",
+        "creatorId"
+      ]
+    },
+    "Donation": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Donation",
+      "type": "object",
+      "description": "Represents a donation made to a disaster relief effort.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the donation."
+        },
+        "disasterId": {
+          "type": "string",
+          "description": "Reference to Disaster. (Relationship: Disaster 1:N Donation)"
+        },
+        "donorId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Donation) The user who made the donation."
+        },
+        "amount": {
+          "type": "number",
+          "description": "Amount of the donation."
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "Timestamp of when the donation was made.",
+          "format": "date-time"
+        },
+        "donationType": {
+          "type": "string",
+          "description": "The type of donation, for example, one-time, monthly, etc."
+        }
+      },
+      "required": [
+        "id",
+        "disasterId",
+        "donorId",
+        "amount",
+        "timestamp"
+      ]
+    },
+    "Verification": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Verification",
+      "type": "object",
+      "description": "Represents a verification record for a proposal's delivery.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the verification record."
+        },
+        "proposalId": {
+          "type": "string",
+          "description": "Reference to Proposal. (Relationship: Proposal 1:N Verification)"
+        },
+        "images": {
+          "type": "array",
+          "description": "Array of URLs or paths to images providing proof of delivery.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "location": {
+          "type": "string",
+          "description": "Geographical location where the delivery was verified."
+        },
+        "status": {
+          "type": "string",
+          "description": "Current status of the verification (e.g., Pending Review, Verified, Rejected)."
+        },
+        "deliveryDate": {
+          "type": "string",
+          "description": "The date that delivery was made.",
+          "format": "date-time"
+        },
+        "recipientCount": {
+          "type": "number",
+          "description": "The number of recipients for the delivery."
+        },
+        "receipts": {
+          "type": "array",
+          "description": "Array of URLs or paths to receipts.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional notes."
+        }
+      },
+      "required": [
+        "id",
+        "proposalId",
+        "images",
+        "location",
+        "status"
+      ]
+    },
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the ReliefDAO platform.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the user."
+        },
+        "role": {
+          "type": "string",
+          "description": "Role of the user (e.g., Donor, Responder, Validator, Admin)."
+        },
+        "reputation": {
+          "type": "number",
+          "description": "Reputation score of the user."
+        },
+        "activity": {
+          "type": "string",
+          "description": "User activity description."
+        },
+        "email": {
+          "type": "string",
+          "description": "Email address of the user.",
+          "format": "email"
+        }
+      },
+      "required": [
+        "id",
+        "role",
+        "reputation"
+      ]
+    },
+    "Vote": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Vote",
+      "type": "object",
+      "description": "Represents a vote on a proposal.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the vote."
+        },
+        "proposalId": {
+          "type": "string",
+          "description": "Reference to Proposal. (Relationship: Proposal 1:N Vote)"
+        },
+        "voterId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N Vote) The user who cast the vote."
+        },
+        "decision": {
+          "type": "boolean",
+          "description": "Decision of the vote (true for Approve, false for Reject)."
+        }
+      },
+      "required": [
+        "id",
+        "proposalId",
+        "voterId",
+        "decision"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profiles. Authorization relies on `request.auth.uid` to ensure users can only access their own profiles.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/disasters/{disasterId}",
+        "definition": {
+          "entityName": "Disaster",
+          "schema": {
+            "$ref": "#/backend/entities/Disaster"
+          },
+          "description": "Stores disaster event information. Publicly readable.",
+          "params": [
+            {
+              "name": "disasterId",
+              "description": "The unique identifier for the disaster."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/disasters/{disasterId}/proposals/{proposalId}",
+        "definition": {
+          "entityName": "Proposal",
+          "schema": {
+            "$ref": "#/backend/entities/Proposal"
+          },
+          "description": "Stores proposals related to a specific disaster. Includes denormalized `creatorId` field for authorization independence.",
+          "params": [
+            {
+              "name": "disasterId",
+              "description": "The unique identifier for the disaster."
+            },
+            {
+              "name": "proposalId",
+              "description": "The unique identifier for the proposal."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/disasters/{disasterId}/donations/{donationId}",
+        "definition": {
+          "entityName": "Donation",
+          "schema": {
+            "$ref": "#/backend/entities/Donation"
+          },
+          "description": "Stores donations related to a specific disaster. Includes denormalized `donorId` field for authorization independence.",
+          "params": [
+            {
+              "name": "disasterId",
+              "description": "The unique identifier for the disaster."
+            },
+            {
+              "name": "donationId",
+              "description": "The unique identifier for the donation."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/disasters/{disasterId}/proposals/{proposalId}/verifications/{verificationId}",
+        "definition": {
+          "entityName": "Verification",
+          "schema": {
+            "$ref": "#/backend/entities/Verification"
+          },
+          "description": "Stores verification records for proposals. Includes denormalized `creatorId` field for authorization independence.",
+          "params": [
+            {
+              "name": "disasterId",
+              "description": "The unique identifier for the disaster."
+            },
+            {
+              "name": "proposalId",
+              "description": "The unique identifier for the proposal."
+            },
+            {
+              "name": "verificationId",
+              "description": "The unique identifier for the verification record."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/proposals/{proposalId}/votes/{voteId}",
+        "definition": {
+          "entityName": "Vote",
+          "schema": {
+            "$ref": "#/backend/entities/Vote"
+          },
+          "description": "Stores votes for each proposal. Includes denormalized `voterId` field for authorization independence.",
+          "params": [
+            {
+              "name": "proposalId",
+              "description": "The unique identifier for the proposal."
+            },
+            {
+              "name": "voteId",
+              "description": "The unique identifier for the vote."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/roles_admin/{uid}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Collection used to assign admin roles. Existence of a document indicates admin status.",
+          "params": [
+            {
+              "name": "uid",
+              "description": "The unique identifier for the user."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/donations/{donationId}",
+        "definition": {
+          "entityName": "Donation",
+          "schema": {
+            "$ref": "#/backend/entities/Donation"
+          },
+          "description": "Stores all donations made by the user. Used to display My Impact. This data is duplicated from `/disasters/{disasterId}/donations/{donationId}`",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "donationId",
+              "description": "The unique identifier for the donation."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "This Firestore structure is designed to support the ReliefDAO disaster response platform, prioritizing security, scalability, and ease of debugging, while adhering to the core design principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), and QAPs (Rules are not Filters).\n\n**Authorization Independence:**  Authorization independence is achieved primarily through denormalization.  For example, proposals are stored as subcollections of disasters and include a `creatorId` field that duplicates the user ID. This eliminates the need for security rules to perform `get()` operations to verify the proposal creator, enabling atomic operations and simplifying security rules.\n\n**Structural Segregation (Homogeneous Security Posture):** The database employs structural segregation by storing different data types in dedicated collections, each with distinct security needs. User profiles are stored in `/users/{userId}`, ensuring private user data is separated from disaster information in `/disasters/{disasterId}`.\n\n**Access Modeling:** Path-based ownership is used for user-generated content like proposals. Proposals are stored within the disaster document `/disasters/{disasterId}/proposals/{proposalId}` and include a `creatorId` that is the user's ID. Donations and verifications follow the same access model. Global roles are managed through the existence of documents in collections like `/roles_admin/{uid}`.\n\n**QAPs (Rules are not Filters):** The structure supports secure `list` operations. The segregation of data based on access needs, combined with the use of path-based ownership, ensures that rules can efficiently authorize `list` operations without acting as filters. For example, listing proposals within a disaster is secured by verifying if the user has access to that disaster.\n\n**Explanation of Paths:**\n*   `/users/{userId}`: Stores user profiles. Authorization relies on `request.auth.uid` to ensure users can only access their own profiles.  A subcollection, `/users/{userId}/donations` would store all donations made by the user. User document contains the role.\n*   `/disasters/{disasterId}`: Stores disaster event information.  Publicly readable. \n*   `/disasters/{disasterId}/proposals/{proposalId}`:  Stores proposals related to a specific disaster. Each proposal contains a `creatorId` field to enable authorization independence. Proposal documents contain `disasterId`.\n*   `/disasters/{disasterId}/donations/{donationId}`: Stores donations related to a specific disaster. Each donation contains a `donorId` field to enable authorization independence.  Donation documents contain `disasterId`.\n*   `/disasters/{disasterId}/proposals/{proposalId}/verifications/{verificationId}`: Stores verification records for proposals. Proposal documents contain `proposalId` and each verifications has `creatorId` of who submitted the verification.\n*   `/proposals/{proposalId}/votes/{voteId}`: Stores votes for each proposal. Each vote includes a `voterId` field for authorization independence.\n*   `/roles_admin/{uid}`: Collection used to assign admin roles.  Existence of a document indicates admin status."
+  }
+}
