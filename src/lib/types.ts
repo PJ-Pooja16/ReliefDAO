@@ -1,3 +1,4 @@
+
 export type DisasterStatus = 'Active' | 'Response Ongoing' | 'Funds Deploying' | 'Completed' | 'Archived';
 export type ProposalStatus = 'Pending' | 'Approved' | 'Rejected' | 'Completed';
 export type UserRole = 'Donor' | 'Responder' | 'Validator' | 'Admin';
@@ -40,6 +41,7 @@ export type Proposal = {
   beneficiaries: number;
   location: string; // Could be more complex, like GeoJSON
   verificationPlan: string[];
+  createdAt: Date;
 };
 
 export type User = {
@@ -47,4 +49,8 @@ export type User = {
   name: string;
   role: UserRole;
   reputation: number;
+  email: string;
+  activity: string;
 };
+
+    

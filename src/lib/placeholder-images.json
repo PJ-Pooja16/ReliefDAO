@@ -23,6 +23,12 @@
       "description": "Forest fire in the mountains of Uttarakhand",
       "imageUrl": "https://images.unsplash.com/photo-1594984820817-d8317f74930c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxmb3Jlc3QlMjBmaXJlfGVufDB8fHx8MTc2NzMyNzIyMHww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "forest fire"
+    },
+    {
+      "id": "chennai-drought",
+      "description": "A dried, cracked riverbed in Chennai during a drought.",
+      "imageUrl": "https://images.unsplash.com/photo-1620610089909-3fcf8e47bf14?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxkcm91Z2h0JTIwY2l0eXxlbnwwfHx8fDE3Njc0MjY3OTR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "drought city"
     }
   ]
 }

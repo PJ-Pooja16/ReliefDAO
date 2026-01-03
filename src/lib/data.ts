@@ -1,11 +1,17 @@
+
 import type { Disaster, Proposal, User } from './types';
 import { PlaceHolderImages } from './placeholder-images';
 
 const users: User[] = [
-  { id: 'u1', name: 'Local NGO Bengaluru', role: 'Responder', reputation: 92 },
-  { id: 'u2', name: 'Dr. Sharma Clinic', role: 'Responder', reputation: 88 },
-  { id: 'u3', name: 'Rapid Response Team', role: 'Validator', reputation: 95 },
-  { id: 'u4', name: 'Community Volunteers', role: 'Responder', reputation: 78 },
+  { id: 'u1', name: 'Local NGO Bengaluru', role: 'Responder', reputation: 92, email: 'contact@local-ngo.org', activity: 'Active in 3 disaster responses' },
+  { id: 'u2', name: 'Dr. Sharma Clinic', role: 'Responder', reputation: 88, email: 'clinic@sharma.med', activity: 'Provided medical aid in Kerala' },
+  { id: 'u3', name: 'Rapid Response Team', role: 'Validator', reputation: 95, email: 'verify@rapid-response.org', activity: 'Validated 50+ proposals' },
+  { id: 'u4', name: 'Community Volunteers', role: 'Responder', reputation: 78, email: 'volunteer-group@community.net', activity: 'Organized shelter during floods' },
+  { id: 'u5', name: 'Global Aid Foundation', role: 'Donor', reputation: 98, email: 'donate@global-aid.org', activity: 'Top donor for cyclone relief' },
+  { id: 'u6', name: 'Vijay', role: 'Admin', reputation: 100, email: 'vijay@reliefdao.org', activity: 'Overseeing all operations' },
+  { id: 'u7', name: 'Sarah', role: 'Donor', reputation: 85, email: 'sarah@example.com', activity: 'Voted on 12 proposals' },
+  { id: 'u8', name: 'Rajesh', role: 'Responder', reputation: 92, email: 'rajesh@example.com', activity: 'Submitted 5 proposals' },
+  { id: 'u9', name: 'Dr. Mehta', role: 'Validator', reputation: 95, email: 'mehta@example.com', activity: 'Validated 23 proofs' },
 ];
 
 const proposals: Proposal[] = [
@@ -24,6 +30,7 @@ const proposals: Proposal[] = [
     beneficiaries: 2000,
     location: 'Bengaluru, India',
     verificationPlan: ['GPS Photos', 'Recipient Signatures'],
+    createdAt: new Date('2026-01-10T10:00:00Z'),
   },
   { 
     id: 'p2', 
@@ -40,6 +47,7 @@ const proposals: Proposal[] = [
     beneficiaries: 500,
     location: 'Bengaluru, India',
     verificationPlan: ['Video Documentation', 'Third-party Verification'],
+    createdAt: new Date('2026-01-09T14:30:00Z'),
   },
   { 
     id: 'p3', 
@@ -56,6 +64,7 @@ const proposals: Proposal[] = [
     beneficiaries: 300,
     location: 'Kerala, India',
     verificationPlan: ['GPS Photos'],
+    createdAt: new Date('2026-01-08T18:00:00Z'),
   },
   { 
     id: 'p4', 
@@ -72,7 +81,42 @@ const proposals: Proposal[] = [
     beneficiaries: 10000,
     location: 'Bengaluru, India',
     verificationPlan: ['GPS Photos', 'Third-party Verification'],
+    createdAt: new Date('2026-01-05T09:00:00Z'),
   },
+  {
+    id: 'p5',
+    disasterId: 'd3',
+    title: 'Cyclone Evacuation Transport',
+    category: 'Transport',
+    amountRequested: 45000,
+    status: 'Approved',
+    timeline: '36 hours',
+    votesYes: 91,
+    votesNo: 9,
+    createdBy: 'u3',
+    description: 'Arranging buses and boats to evacuate over 5000 people from low-lying coastal areas to designated cyclone shelters before landfall.',
+    beneficiaries: 5000,
+    location: 'Coastal Odisha',
+    verificationPlan: ['GPS Photos', 'Recipient Signatures'],
+    createdAt: new Date('2026-01-11T08:00:00Z'),
+  },
+  {
+    id: 'p6',
+    disasterId: 'd4',
+    title: 'Firefighting Equipment',
+    category: 'Other',
+    amountRequested: 18000,
+    status: 'Rejected',
+    timeline: '48 hours',
+    votesYes: 40,
+    votesNo: 60,
+    createdBy: 'u4',
+    description: 'Procurement of modern firefighting equipment including masks, suits, and portable water pumps for the forest department and local volunteers.',
+    beneficiaries: 50,
+    location: 'Uttarakhand Forests',
+    verificationPlan: ['Receipts', 'Video Documentation'],
+    createdAt: new Date('2025-12-20T11:00:00Z'),
+  }
 ];
 
 const disasters: Disaster[] = [
@@ -127,14 +171,14 @@ const disasters: Disaster[] = [
     status: 'Active',
     fundsNeeded: 750000,
     fundsRaised: 150000,
-    proposals: [],
+    proposals: ['p5'],
     impact: 'Early warnings issued',
     dateStarted: '2026-01-10',
     type: 'Cyclone',
     alertLevel: 5,
     affected: 100000,
     fundsDeployed: 0,
-    proposalsFunded: 0,
+    proposalsFunded: 1,
     verifiedDeliveries: 0,
     image: {
       id: 'odisha-cyclone',
@@ -149,7 +193,7 @@ const disasters: Disaster[] = [
     status: 'Completed',
     fundsNeeded: 80000,
     fundsRaised: 80000,
-    proposals: [],
+    proposals: ['p6'],
     impact: '3 villages protected',
     dateStarted: '2025-12-15',
     type: 'Wildfire',
@@ -162,6 +206,28 @@ const disasters: Disaster[] = [
       id: 'uttarakhand-wildfire',
       url: PlaceHolderImages.find(img => img.id === 'uttarakhand-wildfire')?.imageUrl || '',
       hint: PlaceHolderImages.find(img => img.id === 'uttarakhand-wildfire')?.imageHint || '',
+    },
+  },
+  { 
+    id: 'd5',
+    name: 'Chennai Water Crisis',
+    location: 'Chennai, India',
+    status: 'Archived',
+    fundsNeeded: 200000,
+    fundsRaised: 210000,
+    proposals: [],
+    impact: 'Water tankers for 50k people',
+    dateStarted: '2025-06-01',
+    type: 'Drought',
+    alertLevel: 3,
+    affected: 1000000,
+    fundsDeployed: 210000,
+    proposalsFunded: 25,
+    verifiedDeliveries: 25,
+    image: {
+      id: 'chennai-drought',
+      url: "https://picsum.photos/seed/chennai-drought/600/400",
+      hint: 'drought city',
     },
   },
 ];
@@ -191,3 +257,5 @@ export const landingPageStats = [
     { name: 'Disasters Responded', value: 45, unit: '', suffix: '' },
     { name: 'Lives Impacted', value: 12500, unit: '', suffix: '+' },
 ];
+
+    
