@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { PageHeader } from '@/components/page-header';
@@ -8,7 +9,7 @@ import {
   AlertTriangle,
   Wind,
   Droplets,
-  Tsunami,
+  Waves,
   Mountain,
 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
@@ -40,7 +41,7 @@ const alerts = [
     severity: 'Low',
     location: 'Indian Ocean, near Andaman Islands',
     time: '8 hours ago',
-    icon: Tsunami,
+    icon: Waves,
     color: 'border-yellow-500 bg-yellow-500/10 text-yellow-500',
     details: 'An undersea earthquake of magnitude 7.1 has been reported. A tsunami watch is in effect for coastal regions.',
   },
