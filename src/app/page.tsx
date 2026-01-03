@@ -47,8 +47,8 @@ export default function Home() {
       <SiteHeader />
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative w-full py-20 md:py-32 lg:py-40 bg-card">
-           <div className="absolute inset-0 bg-black/10 dark:bg-black/30 backdrop-blur-sm"></div>
+        <section className="relative w-full py-20 md:py-32 lg:py-40 overflow-hidden">
+           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent dark:from-background/80 dark:via-background/20"></div>
           <Image
             src="https://images.unsplash.com/photo-1593494052844-4893795a9443?q=80&w=2070&auto=format&fit=crop"
             alt="Disaster relief efforts"
@@ -65,7 +65,7 @@ export default function Home() {
               A new paradigm for disaster relief, powered by community and technology.
             </p>
             <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground">
+              <Button asChild size="lg" className="bg-gradient-to-r from-accent to-orange-400 text-white hover:opacity-90 transition-opacity">
                 <Link href="/donate">Donate Now</Link>
               </Button>
               <Button asChild size="lg" variant="secondary">
@@ -91,7 +91,7 @@ export default function Home() {
             </p>
             <div className="mt-12 grid gap-8 md:grid-cols-3">
               {howItWorksSteps.map((step, index) => (
-                <div key={index} className="flex flex-col items-center text-center p-6 rounded-lg">
+                <div key={index} className="flex flex-col items-center text-center p-6 rounded-lg transition-all duration-300 hover:bg-muted">
                   <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
                     {step.icon}
                   </div>

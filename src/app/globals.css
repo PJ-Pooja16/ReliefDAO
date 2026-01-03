@@ -2,10 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: Arial, Helvetica, sans-serif;
-}
-
 @layer base {
   :root {
     --background: 260 80% 98%;
@@ -42,26 +38,27 @@ body {
     --sidebar-border: 260 20% 90%;
     --sidebar-ring: 260 70% 55%;
   }
+
   .dark {
-    --background: 224 71% 4%;
+    --background: 222 84% 4%;
     --foreground: 210 40% 98%;
-    --card: 224 71% 9%;
+    --card: 222 84% 9%;
     --card-foreground: 210 40% 98%;
-    --popover: 224 71% 4%;
+    --popover: 222 84% 4%;
     --popover-foreground: 210 40% 98%;
-    --primary: 173 80% 40%;
+    --primary: 173 90% 40%;
     --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 98%;
-    --secondary-foreground: 173 80% 40%;
-    --muted: 224 71% 15%;
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 33% 17%;
     --muted-foreground: 215 20.2% 65.1%;
     --accent: 210 40% 48%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 224 71% 15%;
-    --input: 224 71% 15%;
-    --ring: 173 80% 40%;
+    --destructive-foreground: 0 85.7% 97.3%;
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 173 90% 40%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
@@ -84,5 +81,26 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+    min-height: 100vh;
+    transition:
+      background-color 0.5s ease,
+      color 0.5s ease;
   }
+  .dark body {
+    background-size: 200% 200%;
+    background-image: linear-gradient(-45deg, hsl(222, 84%, 4%), hsl(260, 60%, 8%), hsl(222, 84%, 4%));
+    animation: gradient 15s ease infinite;
+  }
+}
+
+@keyframes gradient {
+	0% {
+		background-position: 0% 50%;
+	}
+	50% {
+		background-position: 100% 50%;
+	}
+	100% {
+		background-position: 0% 50%;
+	}
 }
