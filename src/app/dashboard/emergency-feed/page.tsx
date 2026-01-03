@@ -54,16 +54,17 @@ export default function EmergencyFeedPage() {
   useEffect(() => {
     const fetchAlerts = async () => {
       setIsLoading(true);
+      const fetchedAlerts: Alert[] = [];
       try {
-        const alertPromises = initialLocations.map(location => getWeatherAlerts({ location }));
-        const results = await Promise.all(alertPromises);
-        
-        const formattedAlerts: Alert[] = results.map(alertData => ({
-          ...alertData,
-          ...getAlertConfig(alertData.type, alertData.severity),
-        }));
-
-        setAlerts(formattedAlerts);
+        for (const location of initialLocations) {
+            const alertData = await getWeatherAlerts({ location });
+            const formattedAlert: Alert = {
+              ...alertData,
+              ...getAlertConfig(alertData.type, alertData.severity),
+            };
+            fetchedAlerts.push(formattedAlert);
+            setAlerts([...fetchedAlerts]); // Update state incrementally
+        }
       } catch (error) {
         console.error("Failed to fetch weather alerts:", error);
         // Optionally, set an error state to show in the UI
@@ -102,7 +103,7 @@ export default function EmergencyFeedPage() {
               <CardTitle>Live Alerts</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {isLoading ? (
+              {(isLoading && alerts.length === 0) ? (
                  <div className="flex items-center justify-center p-10">
                     <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                     <span className="ml-4 text-muted-foreground">Fetching live alerts...</span>
@@ -134,6 +135,7 @@ export default function EmergencyFeedPage() {
                     No active alerts at this time.
                 </div>
               )}
+               {isLoading && alerts.length > 0 && <div className="flex items-center justify-center pt-4"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /><span className="ml-2 text-muted-foreground text-sm">Fetching more alerts...</span></div>}
             </CardContent>
           </Card>
         </div>
