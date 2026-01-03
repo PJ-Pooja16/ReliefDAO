@@ -1,7 +1,7 @@
 
-
 'use client';
 
+import { useEffect, useState } from 'react';
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -11,53 +11,70 @@ import {
   Droplets,
   Waves,
   Mountain,
+  LucideIcon,
+  Loader2,
 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { getWeatherAlerts, GetWeatherAlertsOutput } from '@/ai/flows/get-weather-alerts';
 
-const alerts = [
-  {
-    id: 'alert-1',
-    type: 'Cyclone',
-    severity: 'Severe',
-    location: 'Bay of Bengal, approaching Odisha coast',
-    time: '2 hours ago',
-    icon: Wind,
-    color: 'border-red-500 bg-red-500/10 text-red-500',
-    details: 'Cyclone "Amphan" has intensified to Category 4. Expected landfall in 12 hours. High wind speeds and storm surge expected.',
-  },
-  {
-    id: 'alert-2',
-    type: 'Flash Flood',
-    severity: 'Moderate',
-    location: 'Uttarakhand, India',
-    time: '5 hours ago',
-    icon: Droplets,
-    color: 'border-orange-500 bg-orange-500/10 text-orange-500',
-    details: 'Heavy rainfall has led to flash flood warnings in several districts. River levels are rising rapidly.',
-  },
-  {
-    id: 'alert-3',
-    type: 'Tsunami Watch',
-    severity: 'Low',
-    location: 'Indian Ocean, near Andaman Islands',
-    time: '8 hours ago',
-    icon: Waves,
-    color: 'border-yellow-500 bg-yellow-500/10 text-yellow-500',
-    details: 'An undersea earthquake of magnitude 7.1 has been reported. A tsunami watch is in effect for coastal regions.',
-  },
-   {
-    id: 'alert-4',
-    type: 'Landslide Warning',
-    severity: 'High',
-    location: 'Western Ghats, Kerala',
-    time: '1 day ago',
-    icon: Mountain,
-    color: 'border-red-500 bg-red-500/10 text-red-500',
-    details: 'Saturated soil from prolonged monsoon rains has triggered a high-risk landslide warning for Idukki and Wayanad districts.',
-  }
+type Alert = GetWeatherAlertsOutput & {
+    icon: LucideIcon;
+    color: string;
+};
+
+const initialLocations = [
+  'Bay of Bengal, approaching Odisha coast',
+  'Uttarakhand, India',
+  'Indian Ocean, near Andaman Islands',
+  'Western Ghats, Kerala',
 ];
 
+const getAlertConfig = (type: string, severity: string) => {
+    let icon: LucideIcon = AlertTriangle;
+    if (type.includes('Cyclone')) icon = Wind;
+    if (type.includes('Flood')) icon = Droplets;
+    if (type.includes('Tsunami')) icon = Waves;
+    if (type.includes('Landslide')) icon = Mountain;
+
+    let color = 'border-yellow-500 bg-yellow-500/10 text-yellow-500';
+    if (severity === 'Severe' || severity === 'High') {
+        color = 'border-red-500 bg-red-500/10 text-red-500';
+    } else if (severity === 'Moderate') {
+        color = 'border-orange-500 bg-orange-500/10 text-orange-500';
+    }
+    return { icon, color };
+};
+
+
 export default function EmergencyFeedPage() {
+    const [alerts, setAlerts] = useState<Alert[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+
+  useEffect(() => {
+    const fetchAlerts = async () => {
+      setIsLoading(true);
+      try {
+        const alertPromises = initialLocations.map(location => getWeatherAlerts({ location }));
+        const results = await Promise.all(alertPromises);
+        
+        const formattedAlerts: Alert[] = results.map(alertData => ({
+          ...alertData,
+          ...getAlertConfig(alertData.type, alertData.severity),
+        }));
+
+        setAlerts(formattedAlerts);
+      } catch (error) {
+        console.error("Failed to fetch weather alerts:", error);
+        // Optionally, set an error state to show in the UI
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAlerts();
+  }, []);
+
   return (
     <>
       <PageHeader
@@ -85,27 +102,38 @@ export default function EmergencyFeedPage() {
               <CardTitle>Live Alerts</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {alerts.map((alert, index) => (
-                <div key={alert.id}>
-                  <div className="flex items-start gap-4">
-                    <div className={`mt-1 p-2 rounded-full ${alert.color}`}>
-                       <alert.icon className="h-5 w-5" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between items-center">
-                        <h4 className="font-semibold">{alert.type}</h4>
-                         <Badge variant={
-                           alert.severity === 'Severe' || alert.severity === 'High' ? 'destructive' : alert.severity === 'Moderate' ? 'secondary' : 'outline'
-                         }>{alert.severity}</Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground">{alert.location}</p>
-                      <p className="text-sm mt-2">{alert.details}</p>
-                       <p className="text-xs text-muted-foreground mt-2">{alert.time}</p>
-                    </div>
-                  </div>
-                  {index < alerts.length - 1 && <Separator className="my-4" />}
+              {isLoading ? (
+                 <div className="flex items-center justify-center p-10">
+                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                    <span className="ml-4 text-muted-foreground">Fetching live alerts...</span>
                 </div>
-              ))}
+              ) : alerts.length > 0 ? (
+                alerts.map((alert, index) => (
+                  <div key={alert.id}>
+                    <div className="flex items-start gap-4">
+                      <div className={`mt-1 p-2 rounded-full ${alert.color}`}>
+                         <alert.icon className="h-5 w-5" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex justify-between items-center">
+                          <h4 className="font-semibold">{alert.type}</h4>
+                           <Badge variant={
+                             alert.severity === 'Severe' || alert.severity === 'High' ? 'destructive' : alert.severity === 'Moderate' ? 'secondary' : 'outline'
+                           }>{alert.severity}</Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{alert.location}</p>
+                        <p className="text-sm mt-2">{alert.details}</p>
+                         <p className="text-xs text-muted-foreground mt-2">{alert.time}</p>
+                      </div>
+                    </div>
+                    {index < alerts.length - 1 && <Separator className="my-4" />}
+                  </div>
+                ))
+              ) : (
+                <div className="text-center p-10 text-muted-foreground">
+                    No active alerts at this time.
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
