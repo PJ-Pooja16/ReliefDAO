@@ -50,7 +50,7 @@ import {
 const DAO_VOTE_ADDRESS = 'Vote111111111111111111111111111111111111111'; // Example address
 
 export default function ProposalDetailPage({
-  params,
+  params: { id: proposalId },
 }: {
   params: { id: string };
 }) {
@@ -60,7 +60,7 @@ export default function ProposalDetailPage({
   const { toast } = useToast();
   const { connected, publicKey, sendTransaction, wallet } = useWallet();
   const [isVoting, setIsVoting] = useState<false | 'yes' | 'no'>(false);
-  const proposalId = params.id;
+  
 
   const proposalRef = useMemoFirebase(
     () => (proposalId ? doc(firestore, 'proposals', proposalId) : null),
@@ -335,4 +335,3 @@ export default function ProposalDetailPage({
     </>
   );
 }
-
