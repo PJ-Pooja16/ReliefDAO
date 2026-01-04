@@ -12,7 +12,7 @@ import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { Proposal, User } from "@/lib/types";
 import { Clock, Users, DollarSign } from "lucide-react";
-import { useDoc, useMemoFirebase } from "@/firebase";
+import { useDoc, useFirebase, useMemoFirebase } from "@/firebase";
 import { doc, getFirestore } from "firebase/firestore";
 
 interface ProposalCardProps {
@@ -81,23 +81,10 @@ export function ProposalCard({ proposal }: ProposalCardProps) {
             </div>
           </div>
         </div>
-        {proposal.status === "Pending" && (
-          <div>
-            <div className="mb-1 flex justify-between text-xs text-muted-foreground">
-              <span>Votes: {proposal.votesYes}% Yes</span>
-              <span>{proposal.votesNo}% No</span>
-            </div>
-            <Progress value={votePercentage} />
-            <div className="mt-1 text-xs text-muted-foreground">
-                Voting ends in 12h
-            </div>
-          </div>
-        )}
+        {/* The voting progress bar was removed from here to avoid confusion for Responders */}
       </CardContent>
       <CardFooter>
-        {proposal.status === "Pending" && (
-          <Button className="w-full bg-accent hover:bg-accent/90">Vote Now</Button>
-        )}
+        {/* The "Vote Now" button was removed, as Responders do not vote on their own proposals */}
         {proposal.status === "Approved" && (
           <Button variant="secondary" className="w-full">Track Delivery</Button>
         )}
