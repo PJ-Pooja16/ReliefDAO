@@ -48,7 +48,7 @@ export default function DashboardLayout({
   const { firestore } = useFirebase();
   const router = useRouter();
 
-  const userDocRef = useMemoFirebase(() => user ? doc(firestore, "users", user.uid) : null, [firestore, user]);
+  const userDocRef = useMemoFirebase(() => (firestore && user) ? doc(firestore, "users", user.uid) : null, [firestore, user]);
   const { data: currentUser, isLoading: isCurrentUserLoading } = useDoc<AppUser>(userDocRef);
 
   useEffect(() => {
