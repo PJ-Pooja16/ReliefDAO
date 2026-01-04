@@ -1,15 +1,11 @@
 
 'use client';
-import { SiteHeader } from "@/components/site-header";
-import { SiteFooter } from "@/components/site-footer";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
-import { Landmark, Users, Siren, FileText, Globe, Calendar, AlertTriangle, Users2, DollarSign } from "lucide-react";
+import { useToast }from "@/hooks/use-toast";
+import { Landmark, Users, Siren, FileText } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -28,7 +24,7 @@ const newDisasterSchema = z.object({
 type NewDisasterForm = z.infer<typeof newDisasterSchema>;
 
 
-export default function AdminPage() {
+export default function AdminDashboardPage() {
   const { toast } = useToast();
   const { firestore } = useFirebase();
 
@@ -44,6 +40,7 @@ export default function AdminPage() {
   });
 
   const onSubmit = (data: NewDisasterForm) => {
+    if (!firestore) return;
     const disastersCollection = collection(firestore, 'disasters');
     const newDisaster = {
         name: data.name,
@@ -67,7 +64,7 @@ export default function AdminPage() {
         }
     };
 
-    // This would typically be a secure operation
+    // This is a non-blocking fire-and-forget operation
     addDocumentNonBlocking(disastersCollection, newDisaster);
 
     toast({
@@ -79,11 +76,9 @@ export default function AdminPage() {
 
   return (
     <>
-      <SiteHeader />
-      <main className="flex-1">
         <PageHeader
-          title="Admin Panel"
-          description="DAO Core Team access only."
+          title="Admin Dashboard"
+          description="Oversee and manage the ReliefDAO platform."
         />
         <div className="container pb-12 space-y-8">
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -166,8 +161,6 @@ export default function AdminPage() {
                 </CardContent>
             </Card>
         </div>
-      </main>
-      <SiteFooter />
     </>
   );
 }
