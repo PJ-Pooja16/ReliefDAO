@@ -36,7 +36,7 @@ import { StatusBadge } from '@/components/status-badge';
 import { Progress } from '@/components/ui/progress';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import {
   Connection,
@@ -49,8 +49,7 @@ import {
 // The DAO's public treasury wallet address for recording votes.
 const DAO_VOTE_ADDRESS = 'Vote111111111111111111111111111111111111111'; // Example address
 
-export default function ProposalDetailPage() {
-  const params = useParams();
+export default function ProposalDetailPage({ params }: { params: { id: string } }) {
   const proposalId = params.id as string;
   const { firestore } = useFirebase();
   const { user: authUser, isUserLoading } = useUser();
@@ -59,26 +58,31 @@ export default function ProposalDetailPage() {
   const { connected, publicKey, sendTransaction, wallet } = useWallet();
   const [isVoting, setIsVoting] = useState<false | 'yes' | 'no'>(false);
   
+  useEffect(() => {
+    if (!isUserLoading && !authUser) {
+      router.push('/login');
+    }
+  }, [authUser, isUserLoading, router]);
 
   const proposalRef = useMemoFirebase(
-    () => (proposalId ? doc(firestore, 'proposals', proposalId) : null),
-    [firestore, proposalId]
+    () => (firestore && proposalId && authUser ? doc(firestore, 'proposals', proposalId) : null),
+    [firestore, proposalId, authUser]
   );
   const { data: proposal, isLoading: isProposalLoading } = useDoc<Proposal>(
     proposalRef
   );
   
-  const votesRef = useMemoFirebase(() => proposalId ? collection(firestore, `proposals/${proposalId}/votes`) : null, [firestore, proposalId]);
+  const votesRef = useMemoFirebase(() => (firestore && proposalId) ? collection(firestore, `proposals/${proposalId}/votes`) : null, [firestore, proposalId]);
   const { data: votes } = useCollection<Vote>(votesRef);
 
   const userDocRef = useMemoFirebase(
-    () => (proposal?.createdBy ? doc(firestore, 'users', proposal.createdBy) : null),
+    () => (firestore && proposal?.createdBy ? doc(firestore, 'users', proposal.createdBy) : null),
     [firestore, proposal?.createdBy]
   );
   const { data: creator } = useDoc<AppUser>(userDocRef);
 
   const currentUserDocRef = useMemoFirebase(
-    () => (authUser ? doc(firestore, 'users', authUser.uid) : null),
+    () => (firestore && authUser ? doc(firestore, 'users', authUser.uid) : null),
     [firestore, authUser]
   );
   const { data: currentUser } = useDoc<AppUser>(currentUserDocRef);
@@ -140,7 +144,7 @@ export default function ProposalDetailPage() {
     } catch (error: any) {
       console.error('Voting failed', error);
 
-       if (error.message.includes('found no record of a prior credit') || error.message.includes('insufficient lamports')) {
+       if (error.message.includes('found no record of a prior credit') || error.message.includes('insufficient lamports') || (wallet?.adapter.name === 'Phantom' && error.code === 4001)) {
            isSimulation = true;
            signature = `simulated_${Date.now()}`;
            toast({
@@ -202,7 +206,7 @@ export default function ProposalDetailPage() {
     return name.substring(0, 2).toUpperCase();
   };
 
-  if (isProposalLoading || isUserLoading) {
+  if (isProposalLoading || isUserLoading || !authUser) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -211,7 +215,16 @@ export default function ProposalDetailPage() {
   }
 
   if (!proposal) {
-    notFound();
+    // This can happen briefly while loading or if the user is redirected.
+    // Or if the document doesn't exist.
+     if (!isProposalLoading) {
+      notFound();
+    }
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
   }
 
   const votePercentage =
