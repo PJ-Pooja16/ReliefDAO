@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from "react";
 import { getDisasterById, getDisasterUpdates } from "@/lib/data";
-import { notFound } from "next/navigation";
+import { notFound, useParams } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { PageHeader } from "@/components/page-header";
@@ -36,8 +36,10 @@ import { collection, query, where } from "firebase/firestore";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
-export default function DisasterDetailPage({ params }: { params: { id: string } }) {
-  const disaster = getDisasterById(params.id);
+export default function DisasterDetailPage() {
+  const params = useParams();
+  const id = params.id as string;
+  const disaster = getDisasterById(id);
   const updates = getDisasterUpdates();
   const { firestore } = useFirebase();
 
