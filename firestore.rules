@@ -160,11 +160,12 @@ service cloud.firestore {
     // --------------------------------------------------------------------
 
     /**
-     * @description Users can create and manage their own profile. Profiles are private.
+     * @description Users can create and manage their own profile. Profiles are private for writing, but readable by any user.
      * @path /users/{userId}
+     * @allow (get) Any authenticated user reading any profile.
      * @allow (create) An authenticated user creating their own profile document, e.g., POST /users/abc with auth.uid = 'abc'.
-     * @deny (get) A user trying to read another user's profile, e.g., GET /users/xyz with auth.uid = 'abc'.
-     * @principle Restricts access to a user's own data tree, preventing data leaks and user enumeration.
+     * @deny (list) Listing users is disabled to prevent user enumeration.
+     * @principle Restricts write access to a user's own data, while allowing read for UI features.
      */
     match /users/{userId} {
       allow get: if isSignedIn();
@@ -248,7 +249,8 @@ service cloud.firestore {
     match /proposals/{proposalId} {
       allow get, list: if isSignedIn();
       allow create: if isSignedIn() && isNewCreator();
-      allow update, delete: if isExistingCreator(resource) || isAdmin();
+      allow update: if isSignedIn(); // Allow updates for vote counts
+      allow delete: if isExistingCreator(resource) || isAdmin();
 
       /**
        * @description Votes are public, can be created by any signed-in user, but are immutable once cast.
