@@ -2,7 +2,7 @@
 
 'use client';
 
-import { notFound, useRouter, useParams } from 'next/navigation';
+import { notFound, useRouter } from 'next/navigation';
 import {
   Card,
   CardContent,
@@ -49,9 +49,8 @@ import {
 // The DAO's public treasury wallet address for recording votes.
 const DAO_VOTE_ADDRESS = 'Vote111111111111111111111111111111111111111'; // Example address
 
-export default function ProposalDetailPage() {
-  const params = useParams();
-  const proposalId = params.id as string;
+export default function ProposalDetailPage({ params }: { params: { id: string } }) {
+  const proposalId = params.id;
   const { firestore } = useFirebase();
   const { user: authUser, isUserLoading } = useUser();
   const router = useRouter();
