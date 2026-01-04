@@ -1,5 +1,5 @@
 
-"use client";
+'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -9,49 +9,68 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import { Logo } from "@/components/logo";
+} from '@/components/ui/card';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs';
+import { Label } from '@/components/ui/label';
+import { Logo } from '@/components/logo';
 import Link from 'next/link';
-import { User, Landmark, ShieldCheck, UserCog } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import type { UserRole } from '@/lib/types';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useAuth, useFirebase, useUser } from '@/firebase';
-import { signInAnonymously } from 'firebase/auth';
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
-import { setDocumentNonBlocking } from '@/firebase';
+import { useToast } from '@/hooks/use-toast';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Loader2 } from 'lucide-react';
+import { initiateEmailSignIn, initiateEmailSignUp } from '@/firebase/non-blocking-login';
 
-const roles = [
-    {
-        name: 'Donor',
-        description: 'Donate, vote on proposals, and track your impact.',
-        icon: User,
-    },
-    {
-        name: 'Responder',
-        description: 'Submit funding requests and execute relief work.',
-        icon: Landmark,
-    },
-    {
-        name: 'Validator',
-        description: 'Verify proofs, flag issues, and earn rewards.',
-        icon: ShieldCheck,
-    },
-    {
-        name: 'Admin',
-        description: 'Manage the system, handle emergencies, and control the treasury.',
-        icon: UserCog,
-    }
-]
+const loginSchema = z.object({
+  email: z.string().email('Please enter a valid email address.'),
+  password: z.string().min(1, 'Password is required.'),
+});
+
+const signUpSchema = z.object({
+  fullName: z.string().min(3, 'Full name must be at least 3 characters.'),
+  email: z.string().email('Please enter a valid email address.'),
+  password: z.string().min(6, 'Password must be at least 6 characters.'),
+  role: z.enum(['Donor', 'Responder', 'Validator', 'Admin']),
+});
+
+type LoginFormValues = z.infer<typeof loginSchema>;
+type SignUpFormValues = z.infer<typeof signUpSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
-  const [selectedRole, setSelectedRole] = useState<UserRole>('Responder');
   const { user, isUserLoading } = useUser();
   const { auth, firestore } = useFirebase();
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (!isUserLoading && user) {
@@ -59,96 +78,247 @@ export default function LoginPage() {
     }
   }, [user, isUserLoading, router]);
 
-  const handleLogin = async () => {
-    setIsLoggingIn(true);
+  const loginForm = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: '', password: '' },
+  });
+
+  const signUpForm = useForm<SignUpFormValues>({
+    resolver: zodResolver(signUpSchema),
+    defaultValues: {
+      fullName: '',
+      email: '',
+      password: '',
+      role: 'Donor',
+    },
+  });
+
+  const onLoginSubmit = async (data: LoginFormValues) => {
+    setIsSubmitting(true);
     try {
-      const userCredential = await signInAnonymously(auth);
+        initiateEmailSignIn(auth, data.email, data.password);
+        // The onAuthStateChanged listener in the provider will handle the redirect
+        toast({
+            title: "Logging In...",
+            description: "You will be redirected shortly."
+        });
+    } catch (error: any) {
+        toast({
+            variant: "destructive",
+            title: "Login Failed",
+            description: error.message || "An unknown error occurred.",
+        })
+    } finally {
+        setIsSubmitting(false);
+    }
+  };
+
+  const onSignUpSubmit = async (data: SignUpFormValues) => {
+    setIsSubmitting(true);
+    try {
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        data.email,
+        data.password
+      );
       const user = userCredential.user;
 
-      const userDocRef = doc(firestore, "users", user.uid);
-      
-      const names: Record<UserRole, string> = {
-        'Donor': 'Sarah',
-        'Responder': 'Rajesh',
-        'Validator': 'Dr. Mehta',
-        'Admin': 'Vijay'
-      }
-
+      const userDocRef = doc(firestore, 'users', user.uid);
       const newUser = {
         id: user.uid,
-        name: names[selectedRole],
-        role: selectedRole,
-        reputation: 85, // starting reputation
-        email: user.email || '',
-        activity: "Joined the DAO",
+        name: data.fullName,
+        role: data.role,
+        email: data.email,
+        reputation: 75, // Starting reputation
+        activity: 'Joined the DAO',
       };
 
-      setDocumentNonBlocking(userDocRef, newUser, { merge: true });
-
-    } catch (error) {
-      console.error("Anonymous sign-in failed", error);
+      await setDoc(userDocRef, newUser, { merge: true });
+      toast({
+        title: "Account Created!",
+        description: "Welcome to ReliefDAO. You are now being logged in."
+      })
+      // The onAuthStateChanged listener will handle the redirect
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Sign Up Failed',
+        description:
+          error.code === 'auth/email-already-in-use'
+            ? 'This email is already registered. Please log in.'
+            : error.message,
+      });
     } finally {
-      setIsLoggingIn(false);
+      setIsSubmitting(false);
     }
   };
 
   if (isUserLoading || user) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        Loading...
+        <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
   }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
-      <div className="w-full max-w-lg">
+      <div className="w-full max-w-md">
         <Card>
           <CardHeader className="text-center space-y-2">
             <div className="mx-auto">
               <Logo />
             </div>
-            <CardTitle className="text-2xl font-headline">Welcome to ReliefDAO</CardTitle>
+            <CardTitle className="text-2xl font-headline">
+              Welcome to ReliefDAO
+            </CardTitle>
             <CardDescription>
-              Choose your role to join the decentralized disaster relief effort.
+              Join the decentralized disaster relief effort.
             </CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col items-center justify-center gap-6">
-            <RadioGroup 
-                defaultValue={selectedRole}
-                onValueChange={(value: UserRole) => setSelectedRole(value)}
-                className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full"
-            >
-                {roles.map((role) => (
-                    <Label
-                        key={role.name}
-                        htmlFor={role.name}
-                        className={cn(
-                            "flex flex-col items-start p-4 rounded-lg border-2 cursor-pointer transition-all",
-                            selectedRole === role.name ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
-                        )}
-                    >
-                         <RadioGroupItem value={role.name} id={role.name} className="sr-only" />
-                         <div className="flex items-center gap-3 mb-2">
-                            <role.icon className={cn("h-6 w-6", selectedRole === role.name ? "text-primary" : "text-muted-foreground")} />
-                            <span className="font-bold text-lg">{role.name}</span>
-                         </div>
-                         <p className="text-sm text-muted-foreground">{role.description}</p>
-                    </Label>
-                ))}
-            </RadioGroup>
-            
-            <div className="flex flex-col items-center gap-4 w-full pt-4 border-t">
-                <p className="text-sm font-medium">Connect anonymously to proceed as a {selectedRole}.</p>
-                <Button onClick={handleLogin} disabled={isLoggingIn}>
-                  {isLoggingIn ? "Logging in..." : "Enter as " + selectedRole}
-                </Button>
-                 <div className="text-center text-sm text-muted-foreground">
-                    By connecting, you agree to our <br />
-                    <Link href="#" className="underline">Terms of Service</Link> and <Link href="#" className="underline">Privacy Policy</Link>.
-                </div>
+          <CardContent>
+            <Tabs defaultValue="login" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="login">Login</TabsTrigger>
+                <TabsTrigger value="signup">Create Account</TabsTrigger>
+              </TabsList>
+              <TabsContent value="login">
+                <Form {...loginForm}>
+                  <form
+                    onSubmit={loginForm.handleSubmit(onLoginSubmit)}
+                    className="space-y-4 pt-4"
+                  >
+                    <FormField
+                      control={loginForm.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="email"
+                              placeholder="your@email.com"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={loginForm.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Password</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="password"
+                              placeholder="••••••••"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button type="submit" className="w-full" disabled={isSubmitting}>
+                      {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Login
+                    </Button>
+                  </form>
+                </Form>
+              </TabsContent>
+              <TabsContent value="signup">
+                <Form {...signUpForm}>
+                  <form
+                    onSubmit={signUpForm.handleSubmit(onSignUpSubmit)}
+                    className="space-y-4 pt-4"
+                  >
+                    <FormField
+                      control={signUpForm.control}
+                      name="fullName"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Full Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Your Name" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={signUpForm.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="email"
+                              placeholder="your@email.com"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={signUpForm.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Password</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="password"
+                              placeholder="6+ characters"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={signUpForm.control}
+                      name="role"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>I am a...</FormLabel>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select your role" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="Donor">Donor</SelectItem>
+                              <SelectItem value="Responder">Responder</SelectItem>
+                              <SelectItem value="Validator">Validator</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button type="submit" className="w-full" disabled={isSubmitting}>
+                       {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Create Account
+                    </Button>
+                  </form>
+                </Form>
+              </TabsContent>
+            </Tabs>
+             <div className="mt-6 text-center text-sm text-muted-foreground">
+                By continuing, you agree to our <br />
+                <Link href="#" className="underline">Terms of Service</Link> and <Link href="#" className="underline">Privacy Policy</Link>.
             </div>
-
           </CardContent>
         </Card>
       </div>
