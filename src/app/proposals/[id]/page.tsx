@@ -49,7 +49,8 @@ import {
 // The DAO's public treasury wallet address for recording votes.
 const DAO_VOTE_ADDRESS = 'Vote111111111111111111111111111111111111111'; // Example address
 
-export default function ProposalDetailPage({ params }: { params: { id: string } }) {
+export default function ProposalDetailPage() {
+  const params = useParams();
   const proposalId = params.id as string;
   const { firestore } = useFirebase();
   const { user: authUser, isUserLoading } = useUser();
