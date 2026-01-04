@@ -17,12 +17,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { getDisasters } from "@/lib/data";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, Wand2, Loader2 } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Progress } from "@/components/ui/progress";
 import type { Proposal } from "@/lib/types";
 import { addDocumentNonBlocking, useFirebase, useUser } from "@/firebase";
 import { collection, serverTimestamp } from "firebase/firestore";
+import { generateProposalDetails } from "@/ai/flows/generate-proposal-details";
 
 const proposalSchema = z.object({
   disaster: z.string().min(1, "Please select a disaster."),
@@ -49,6 +50,7 @@ const verificationMethods = [
 
 export default function CreateProposalPage() {
   const [step, setStep] = useState(1);
+  const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
   const disasters = getDisasters();
   const router = useRouter();
@@ -77,6 +79,38 @@ export default function CreateProposalPage() {
       form.setValue('disaster', disasterId);
     }
   }, [disasterId, form]);
+
+  const handleGenerate = async () => {
+    const { disaster, title, category, amount, timeline } = form.getValues();
+    if (!disaster || !title || !category) {
+        toast({
+            variant: "destructive",
+            title: "Missing Information",
+            description: "Please complete Step 1 (Disaster, Title, Category) before generating a plan."
+        });
+        return;
+    }
+    
+    setIsGenerating(true);
+    try {
+        const disasterName = disasters.find(d => d.id === disaster)?.name || 'the disaster';
+        const result = await generateProposalDetails({
+            disasterName,
+            proposalTitle: title,
+            category,
+            amount,
+            timeline,
+        });
+        form.setValue('description', result.detailedPlan);
+        toast({ title: "Detailed Plan Generated!", description: "The AI has drafted a plan for you. Please review and edit as needed."});
+    } catch (e) {
+        console.error(e);
+        toast({ variant: 'destructive', title: "Generation Failed", description: "The AI could not generate a plan. Please try again." });
+    } finally {
+        setIsGenerating(false);
+    }
+  };
+
 
   const nextStep = async () => {
     let isValid = false;
@@ -189,8 +223,14 @@ export default function CreateProposalPage() {
                     <div className="space-y-4">
                         <FormField control={form.control} name="description" render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Detailed Plan</FormLabel>
-                                <FormControl><Textarea placeholder="Describe your plan in detail..." {...field} rows={8} /></FormControl>
+                                <div className="flex justify-between items-center mb-2">
+                                  <FormLabel>Detailed Plan</FormLabel>
+                                  <Button type="button" variant="outline" size="sm" onClick={handleGenerate} disabled={isGenerating}>
+                                      {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                                      {isGenerating ? "Generating..." : "Generate with AI"}
+                                  </Button>
+                                </div>
+                                <FormControl><Textarea placeholder="Describe your plan in detail... or let AI help you draft one." {...field} rows={8} /></FormControl>
                                 <FormMessage />
                             </FormItem>
                         )} />
