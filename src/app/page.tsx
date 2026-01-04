@@ -50,12 +50,12 @@ export default function Home() {
         <section className="relative w-full py-20 md:py-32 lg:py-40 overflow-hidden">
            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent dark:from-background/80 dark:via-background/20"></div>
           <Image
-            src="https://images.unsplash.com/photo-1593494052844-4893795a9443?q=80&w=2070&auto=format&fit=crop"
-            alt="Disaster relief efforts"
+            src="https://images.unsplash.com/photo-1520412099554-64893a73a3b4?q=80&w=2070&auto=format&fit=crop"
+            alt="Hands holding a small plant, symbolizing growth and relief"
             layout="fill"
             objectFit="cover"
             className="-z-10"
-            data-ai-hint="disaster relief"
+            data-ai-hint="hope relief"
           />
           <div className="container mx-auto px-4 md:px-6 text-center relative z-10">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-headline tracking-tight text-white text-shadow-lg">
