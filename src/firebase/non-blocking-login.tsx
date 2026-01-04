@@ -32,7 +32,8 @@ export function initiateEmailSignIn(authInstance: Auth, email: string, password:
   return signInWithEmailAndPassword(authInstance, email, password)
     .then(() => {}) // Return void on success
     .catch(err => {
-        console.error("Sign-in failed", err);
-        throw err; // Re-throw to be caught by the caller's try/catch
+        // Log the internal error but re-throw to allow the UI to handle it (e.g., show a toast).
+        console.error("Sign-in failed internally:", err.message);
+        throw err;
     });
 }
