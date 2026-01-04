@@ -85,7 +85,7 @@ export default function Home() {
         </section>
 
         {/* How It Works Section */}
-        <section className="bg-card py-16 sm:py-24">
+        <section id="how-it-works" className="bg-card py-16 sm:py-24">
           <div className="container mx-auto px-4">
             <h2 className="text-3xl font-bold text-center font-headline">A Better Way to Help</h2>
             <p className="mt-2 text-center text-muted-foreground max-w-2xl mx-auto">

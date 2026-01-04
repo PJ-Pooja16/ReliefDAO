@@ -4,16 +4,16 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Menu, LogOut } from "lucide-react";
+import { Menu, LogIn, LogOut } from "lucide-react";
 import { Logo } from "./logo";
 import { useUser, useAuth } from "@/firebase";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { ThemeToggle } from "./theme-toggle";
 
 export function SiteHeader() {
   const navLinks = [
-    { href: "#how-it-works", label: "How it Works" },
+    { href: "/#how-it-works", label: "How it Works" },
     { href: "/dashboard/active-disasters", label: "Disasters" },
     { href: "/donate", label: "Donate" },
   ];
@@ -21,9 +21,13 @@ export function SiteHeader() {
   const { user, isUserLoading } = useUser();
   const auth = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
+  const isHomePage = pathname === '/';
 
   const handleLogout = async () => {
-    await signOut(auth);
+    if (auth) {
+      await signOut(auth);
+    }
     router.push('/login');
   };
 
@@ -76,14 +80,14 @@ export function SiteHeader() {
           <div className="flex items-center gap-2">
             <ThemeToggle />
             {isUserLoading ? (
-              <Button disabled>Loading...</Button>
-            ) : user ? (
+              <Button disabled size="sm">Loading...</Button>
+            ) : user && !isHomePage ? (
               <>
-                <Button asChild variant="ghost"><Link href="/dashboard">Dashboard</Link></Button>
-                <Button variant="outline" onClick={handleLogout}><LogOut className="mr-2 h-4 w-4"/> Logout</Button>
+                <Button asChild variant="ghost" size="sm"><Link href="/dashboard">Dashboard</Link></Button>
+                <Button variant="outline" size="sm" onClick={handleLogout}><LogOut className="mr-2 h-4 w-4"/> Logout</Button>
               </>
             ) : (
-              <Button asChild><Link href="/login">Login</Link></Button>
+              <Button asChild size="sm"><Link href="/login"><LogIn className="mr-2 h-4 w-4"/>Login</Link></Button>
             )}
           </div>
         </div>
