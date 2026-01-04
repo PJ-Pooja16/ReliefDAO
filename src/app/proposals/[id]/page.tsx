@@ -58,10 +58,11 @@ export default function ProposalDetailPage({
   const { toast } = useToast();
   const { connected, publicKey, sendTransaction } = useWallet();
   const [isVoting, setIsVoting] = useState<false | 'yes' | 'no'>(false);
+  const proposalId = params.id;
 
   const proposalRef = useMemoFirebase(
-    () => (params.id ? doc(firestore, 'proposals', params.id) : null),
-    [firestore, params.id]
+    () => (proposalId ? doc(firestore, 'proposals', proposalId) : null),
+    [firestore, proposalId]
   );
   const { data: proposal, isLoading: isProposalLoading } = useDoc<Proposal>(
     proposalRef
