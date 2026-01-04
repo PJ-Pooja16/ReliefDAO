@@ -50,10 +50,11 @@ import {
 const DAO_VOTE_ADDRESS = 'Vote111111111111111111111111111111111111111'; // Example address
 
 export default function ProposalDetailPage({
-  params: { id: proposalId },
+  params,
 }: {
   params: { id: string };
 }) {
+  const proposalId = params.id;
   const { firestore } = useFirebase();
   const { user: authUser, isUserLoading } = useUser();
   const router = useRouter();
