@@ -96,7 +96,7 @@ export default function LoginPage() {
   const onLoginSubmit = async (data: LoginFormValues) => {
     setIsSubmitting(true);
     try {
-        initiateEmailSignIn(auth, data.email, data.password);
+        await initiateEmailSignIn(auth, data.email, data.password);
         // The onAuthStateChanged listener in the provider will handle the redirect
         toast({
             title: "Logging In...",
@@ -106,7 +106,7 @@ export default function LoginPage() {
         toast({
             variant: "destructive",
             title: "Login Failed",
-            description: error.message || "An unknown error occurred.",
+            description: "The email or password you entered is incorrect.",
         })
     } finally {
         setIsSubmitting(false);
