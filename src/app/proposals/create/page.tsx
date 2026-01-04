@@ -98,7 +98,7 @@ export default function CreateProposalPage() {
             disasterName,
             proposalTitle: title,
             category,
-            amount,
+            amount: Number(amount),
             timeline,
         });
         form.setValue('description', result.detailedPlan);
