@@ -87,4 +87,3 @@ export type DisasterUpdate = {
   title: string;
   description: string;
 };
-

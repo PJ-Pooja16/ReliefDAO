@@ -59,7 +59,7 @@ const signUpSchema = z.object({
   fullName: z.string().min(3, 'Full name must be at least 3 characters.'),
   email: z.string().email('Please enter a valid email address.'),
   password: z.string().min(6, 'Password must be at least 6 characters.'),
-  role: z.enum(['Donor', 'Responder', 'Validator', 'Admin']),
+  role: z.enum(['Donor', 'Responder', 'Validator']),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
