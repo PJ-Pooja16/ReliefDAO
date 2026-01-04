@@ -2,7 +2,7 @@
 
 'use client';
 
-import { notFound, useRouter } from 'next/navigation';
+import { notFound, useRouter, useParams } from 'next/navigation';
 import {
   Card,
   CardContent,
@@ -49,12 +49,9 @@ import {
 // The DAO's public treasury wallet address for recording votes.
 const DAO_VOTE_ADDRESS = 'Vote111111111111111111111111111111111111111'; // Example address
 
-export default function ProposalDetailPage({
-  params,
-}: {
-  params: { id: string };
-}) {
-  const proposalId = params.id;
+export default function ProposalDetailPage() {
+  const params = useParams();
+  const proposalId = params.id as string;
   const { firestore } = useFirebase();
   const { user: authUser, isUserLoading } = useUser();
   const router = useRouter();
@@ -163,26 +160,28 @@ export default function ProposalDetailPage({
 
     try {
         // Record vote in Firestore
-        const votesColRef = collection(firestore, `proposals/${proposal.id}/votes`);
-        const newVote = {
-            proposalId: proposal.id,
-            voterId: authUser.uid,
-            decision: decision === 'yes',
-            createdAt: serverTimestamp(),
-            txSignature: signature,
-        };
-        addDocumentNonBlocking(votesColRef, newVote);
+        if (proposal.id) {
+            const votesColRef = collection(firestore, `proposals/${proposal.id}/votes`);
+            const newVote = {
+                proposalId: proposal.id,
+                voterId: authUser.uid,
+                decision: decision === 'yes',
+                createdAt: serverTimestamp(),
+                txSignature: signature,
+            };
+            addDocumentNonBlocking(votesColRef, newVote);
 
-        // Update proposal vote counts
-        const proposalDocRef = doc(firestore, `proposals/${proposal.id}`);
-        const currentYes = proposal.votesYes || 0;
-        const currentNo = proposal.votesNo || 0;
+            // Update proposal vote counts
+            const proposalDocRef = doc(firestore, `proposals/${proposal.id}`);
+            const currentYes = proposal.votesYes || 0;
+            const currentNo = proposal.votesNo || 0;
 
-        const updatedVotes = decision === 'yes'
-            ? { votesYes: currentYes + 1 }
-            : { votesNo: currentNo + 1 };
+            const updatedVotes = decision === 'yes'
+                ? { votesYes: currentYes + 1 }
+                : { votesNo: currentNo + 1 };
 
-        updateDocumentNonBlocking(proposalDocRef, updatedVotes);
+            updateDocumentNonBlocking(proposalDocRef, updatedVotes);
+        }
     } catch (dbError: any) {
         console.error('Failed to record vote in DB', dbError);
         toast({
