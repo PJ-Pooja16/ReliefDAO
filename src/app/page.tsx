@@ -1,3 +1,4 @@
+
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -52,9 +53,10 @@ export default function Home() {
           <Image
             src="https://images.unsplash.com/photo-1569002598204-a131a9862b66?q=80&w=2070&auto=format&fit=crop"
             alt="Hands of a diverse group of people coming together, symbolizing community and support"
-            layout="fill"
-            objectFit="cover"
-            className="-z-10"
+            fill
+            priority
+            quality={80}
+            className="object-cover -z-10"
             data-ai-hint="community support"
           />
           <div className="container mx-auto px-4 md:px-6 text-center relative z-10">
