@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { notFound, useRouter } from 'next/navigation';
@@ -18,8 +19,9 @@ import {
   useUser,
   addDocumentNonBlocking,
   updateDocumentNonBlocking,
+  useCollection,
 } from '@/firebase';
-import type { Proposal, User as AppUser } from '@/lib/types';
+import type { Proposal, User as AppUser, Vote } from '@/lib/types';
 import {
   doc,
   collection,
@@ -28,13 +30,13 @@ import {
 import { SiteHeader } from '@/components/site-header';
 import { SiteFooter } from '@/components/site-footer';
 import { PageHeader } from '@/components/page-header';
-import { Loader2, ThumbsUp, ThumbsDown, CheckCircle, XCircle } from 'lucide-react';
+import { Loader2, ThumbsUp, ThumbsDown, CheckCircle, XCircle, ShieldCheck } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { StatusBadge } from '@/components/status-badge';
 import { Progress } from '@/components/ui/progress';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import {
   Connection,
@@ -67,6 +69,9 @@ export default function ProposalDetailPage({
   const { data: proposal, isLoading: isProposalLoading } = useDoc<Proposal>(
     proposalRef
   );
+  
+  const votesRef = useMemoFirebase(() => proposalId ? collection(firestore, `proposals/${proposalId}/votes`) : null, [firestore, proposalId]);
+  const { data: votes } = useCollection<Vote>(votesRef);
 
   const userDocRef = useMemoFirebase(
     () => (proposal?.createdBy ? doc(firestore, 'users', proposal.createdBy) : null),
@@ -79,6 +84,11 @@ export default function ProposalDetailPage({
     [firestore, authUser]
   );
   const { data: currentUser } = useDoc<AppUser>(currentUserDocRef);
+  
+  const userHasVoted = useMemo(() => {
+    if (!authUser || !votes) return false;
+    return votes.some(vote => vote.voterId === authUser.uid);
+  }, [authUser, votes]);
 
   const handleVote = async (decision: 'yes' | 'no') => {
     if (!publicKey || !authUser || !proposal) {
@@ -86,6 +96,15 @@ export default function ProposalDetailPage({
         variant: 'destructive',
         title: 'Cannot Vote',
         description: 'Please connect your wallet and log in to vote.',
+      });
+      return;
+    }
+    
+    if (userHasVoted) {
+      toast({
+        variant: "destructive",
+        title: "Already Voted",
+        description: "You have already cast your vote for this proposal."
       });
       return;
     }
@@ -275,6 +294,12 @@ export default function ProposalDetailPage({
                           <p className="text-muted-foreground text-sm">Connect your wallet to vote.</p>
                           <WalletMultiButton />
                         </div>
+                    ) : userHasVoted ? (
+                         <div className="w-full text-center p-4 bg-muted rounded-lg">
+                            <p className="text-muted-foreground font-medium flex items-center justify-center">
+                               <ShieldCheck className="h-4 w-4 mr-2 text-green-600"/> Your vote has been recorded.
+                            </p>
+                        </div>
                     ) : (
                       <>
                         <Button className="w-full" onClick={() => handleVote('yes')} disabled={!!isVoting}>
@@ -310,3 +335,4 @@ export default function ProposalDetailPage({
     </>
   );
 }
+

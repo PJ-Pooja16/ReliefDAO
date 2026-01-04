@@ -1,4 +1,5 @@
 
+
 export type DisasterStatus = 'Active' | 'Response Ongoing' | 'Funds Deploying' | 'Completed' | 'Archived';
 export type ProposalStatus = 'Pending' | 'Approved' | 'Rejected' | 'Completed';
 export type UserRole = 'Donor' | 'Responder' | 'Validator' | 'Admin';
@@ -62,6 +63,15 @@ export type Donation = {
   donationType: string;
 };
 
+export type Vote = {
+    id: string;
+    proposalId: string;
+    voterId: string;
+    decision: boolean;
+    createdAt: Date;
+    txSignature: string;
+}
+
 export type TreasuryTransaction = {
   id: string;
   type: 'Inbound' | 'Outbound';
@@ -77,3 +87,4 @@ export type DisasterUpdate = {
   title: string;
   description: string;
 };
+
