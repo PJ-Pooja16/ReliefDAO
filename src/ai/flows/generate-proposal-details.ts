@@ -54,7 +54,7 @@ const generateProposalDetailsFlow = ai.defineFlow(
   {
     name: 'generateProposalDetailsFlow',
     inputSchema: GenerateProposalDetailsInputSchema,
-    outputSchema: Generate-proposal-detailsOutputSchema,
+    outputSchema: GenerateProposalDetailsOutputSchema,
   },
   async input => {
     const { output } = await generateProposalDetailsPrompt(input);
