@@ -2,7 +2,7 @@
 
 'use client';
 
-import { notFound, useRouter } from 'next/navigation';
+import { notFound, useRouter, useParams } from 'next/navigation';
 import {
   Card,
   CardContent,
@@ -49,8 +49,9 @@ import {
 // The DAO's public treasury wallet address for recording votes.
 const DAO_VOTE_ADDRESS = 'Vote111111111111111111111111111111111111111'; // Example address
 
-export default function ProposalDetailPage({ params }: { params: { id: string } }) {
-  const proposalId = params.id;
+export default function ProposalDetailPage() {
+  const params = useParams();
+  const proposalId = params.id as string;
   const { firestore } = useFirebase();
   const { user: authUser, isUserLoading } = useUser();
   const router = useRouter();
@@ -65,8 +66,8 @@ export default function ProposalDetailPage({ params }: { params: { id: string } 
   }, [authUser, isUserLoading, router]);
 
   const proposalRef = useMemoFirebase(
-    () => (firestore && proposalId && authUser ? doc(firestore, 'proposals', proposalId) : null),
-    [firestore, proposalId, authUser]
+    () => (firestore && proposalId ? doc(firestore, 'proposals', proposalId) : null),
+    [firestore, proposalId]
   );
   const { data: proposal, isLoading: isProposalLoading } = useDoc<Proposal>(
     proposalRef
@@ -138,7 +139,7 @@ export default function ProposalDetailPage({ params }: { params: { id: string } 
       
       toast({
         title: 'Vote Cast!',
-        description: `Your vote to ${decision} has been recorded on-chain.`,
+        description: `Your vote has been recorded on-chain.`,
       });
 
     } catch (error: any) {
@@ -206,7 +207,7 @@ export default function ProposalDetailPage({ params }: { params: { id: string } 
     return name.substring(0, 2).toUpperCase();
   };
 
-  if (isProposalLoading || isUserLoading || !authUser) {
+  if (isProposalLoading || isUserLoading || !authUser || !proposalId) {
     return (
       <div className="flex h-screen items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
