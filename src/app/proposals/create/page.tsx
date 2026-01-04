@@ -17,13 +17,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { getDisasters } from "@/lib/data";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, ArrowRight, Wand2, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Progress } from "@/components/ui/progress";
 import type { Proposal } from "@/lib/types";
 import { addDocumentNonBlocking, useFirebase, useUser } from "@/firebase";
 import { collection, serverTimestamp } from "firebase/firestore";
-import { generateDisasterProposal } from "@/ai/flows/generate-disaster-proposal";
 
 const proposalSchema = z.object({
   disaster: z.string().min(1, "Please select a disaster."),
@@ -57,9 +56,6 @@ export default function CreateProposalPage() {
   const disasterId = searchParams.get('disasterId');
   const { firestore } = useFirebase();
   const { user } = useUser();
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [briefDescription, setBriefDescription] = useState("");
-
 
   const form = useForm<ProposalFormValues>({
     resolver: zodResolver(proposalSchema),
@@ -81,46 +77,6 @@ export default function CreateProposalPage() {
       form.setValue('disaster', disasterId);
     }
   }, [disasterId, form]);
-
-  const handleGenerate = async () => {
-    const title = form.getValues("title");
-    if (!title) {
-        toast({
-            variant: "destructive",
-            title: "Title is required",
-            description: "Please enter a proposal title before generating a plan.",
-        });
-        return;
-    }
-     if (!briefDescription) {
-        toast({
-            variant: "destructive",
-            title: "Brief description is required",
-            description: "Please provide a brief description to generate a plan.",
-        });
-        return;
-    }
-
-    setIsGenerating(true);
-    try {
-        const result = await generateDisasterProposal({ title, description: briefDescription });
-        form.setValue("description", result.plan);
-        toast({
-            title: "Plan Generated!",
-            description: "The AI has generated a detailed plan for your proposal.",
-        });
-    } catch (e) {
-        console.error(e);
-        toast({
-            variant: "destructive",
-            title: "Generation Failed",
-            description: "The AI could not generate a plan. Please try again.",
-        });
-    } finally {
-        setIsGenerating(false);
-    }
-  };
-
 
   const nextStep = async () => {
     let isValid = false;
@@ -231,24 +187,10 @@ export default function CreateProposalPage() {
 
                   <div className={step === 2 ? 'block' : 'hidden'}>
                     <div className="space-y-4">
-                        <div className="space-y-2">
-                           <FormLabel>Brief Description for AI</FormLabel>
-                           <div className="flex gap-2">
-                            <Input 
-                                placeholder="e.g., Distribute food kits to 500 families in affected zones"
-                                value={briefDescription}
-                                onChange={(e) => setBriefDescription(e.target.value)}
-                            />
-                            <Button type="button" onClick={handleGenerate} disabled={isGenerating}>
-                                {isGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
-                                <span className="ml-2 hidden sm:inline">Generate Plan</span>
-                            </Button>
-                           </div>
-                        </div>
                         <FormField control={form.control} name="description" render={({ field }) => (
                             <FormItem>
                                 <FormLabel>Detailed Plan</FormLabel>
-                                <FormControl><Textarea placeholder="Describe your plan or generate one with AI..." {...field} rows={8} /></FormControl>
+                                <FormControl><Textarea placeholder="Describe your plan in detail..." {...field} rows={8} /></FormControl>
                                 <FormMessage />
                             </FormItem>
                         )} />
