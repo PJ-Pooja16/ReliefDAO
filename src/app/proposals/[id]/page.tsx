@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { notFound, useRouter, useParams } from 'next/navigation';
@@ -66,8 +64,8 @@ export default function ProposalDetailPage() {
   }, [authUser, isUserLoading, router]);
 
   const proposalRef = useMemoFirebase(
-    () => (firestore && proposalId ? doc(firestore, 'proposals', proposalId) : null),
-    [firestore, proposalId]
+    () => (firestore && proposalId && authUser ? doc(firestore, 'proposals', proposalId) : null),
+    [firestore, proposalId, authUser]
   );
   const { data: proposal, isLoading: isProposalLoading } = useDoc<Proposal>(
     proposalRef
@@ -145,7 +143,7 @@ export default function ProposalDetailPage() {
     } catch (error: any) {
       console.error('Voting failed', error);
 
-       if (error.message.includes('found no record of a prior credit') || error.message.includes('insufficient lamports') || (wallet?.adapter.name === 'Phantom' && error.code === 4001)) {
+       if (error.message.includes('insufficient lamports') || (wallet?.adapter.name === 'Phantom' && error.code === 4001)) {
            isSimulation = true;
            signature = `simulated_${Date.now()}`;
            toast({

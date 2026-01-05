@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import Link from "next/link";
@@ -43,6 +41,8 @@ export function ProposalCard({ proposal }: ProposalCardProps) {
     return name.substring(0, 2).toUpperCase();
   };
   
+  const canVote = currentUser?.role === 'Validator';
+
   return (
     <Card className="transition-shadow hover:shadow-md flex flex-col">
       <CardHeader>
@@ -105,7 +105,7 @@ export function ProposalCard({ proposal }: ProposalCardProps) {
       <CardFooter>
         <Button asChild className="w-full" variant="secondary">
           <Link href={`/proposals/${proposal.id}`}>
-             View & Vote <ArrowRight className="ml-2 h-4 w-4" />
+             {canVote ? 'View & Vote' : 'View Details'} <ArrowRight className="ml-2 h-4 w-4" />
           </Link>
         </Button>
       </CardFooter>
