@@ -50,7 +50,7 @@ export default function Home() {
         {/* Hero Section */}
         <section className="relative w-full py-20 md:py-32 lg:py-40 overflow-hidden">
            <Image
-            src="https://images.unsplash.com/photo-1721996587629-a1b3a3b5c879?q=80&w=2070&auto=format&fit=crop"
+            src="https://images.unsplash.com/photo-1722026362793-1b9134a6e252?q=80&w=2070&auto=format&fit=crop"
             alt="A flooded city with sun rays breaking through dark clouds, symbolizing hope amidst disaster"
             fill
             priority
